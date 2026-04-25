@@ -20,6 +20,11 @@ target/
 .springBeans
 .sts4-cache
 
+### DB resources ###
+.env
+db/data
+src/main/resources/db.properties
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
