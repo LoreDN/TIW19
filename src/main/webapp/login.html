@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Project Management and Reporting</title>
+</head>
+<body>
+    <h1>Access to the "Project Management and Reporting" Web Portal</h1>
+
+    <!-- print Login Errors -->
+    <p th:if="${errorMessage}" th:text="${errorMessage}" style="color:red;"></p>
+
+    <!-- Login form -->
+    <form th:action="@{/login}" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" th:value="${username}" required /><br/>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required /><br/>
+
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>
