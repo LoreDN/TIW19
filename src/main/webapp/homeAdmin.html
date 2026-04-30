@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page - Admin role</title>
+</head>
+<body>
+    <h1>Home Page - Admin role</h1>
+    <p th:text="'Welcome, ' + ${session.user.name} + ' ' + ${session.user.surname}"></p>
+    <p>Go to <a th:href="@{/projectVerification}">Project Verification</a> | <a th:href="@{/logout}">LOGOUT</a></p>
+
+    <!-- Project Creation form -->
+    <h2>Create a new Project</h2>
+    <p th:if="${projectErrorMessage}" th:text="${projectErrorMessage}" style="color:red;"></p>
+    <form th:action="@{/homeAdmin/createProject}" method="post">
+        <label for="ProjectTitle">Title</label>
+        <input type="text" id="ProjectTitle" name="title" th:value="${projectTitle}" required /><br/>
+
+        <label for="ProjectMonthsDuration">Duration (in months):</label>
+        <input type="number" id="ProjectMonthsDuration" name="duration" th:value="${projectDuration}" min="1" required /><br/>
+
+        <label for="ProjectManager">Manager: </label>
+        <input type="text" id="ProjectManager" name="manager" th:value="${projectManager}" required /><br/>
+
+        <button type="submit">Save Project</button>
+    </form>
+</body>
+</html>
