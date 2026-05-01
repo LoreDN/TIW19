@@ -1,11 +1,15 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
+import tiw19.servletVersion.model.Project;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Project Data-Access-Object.
@@ -24,6 +28,14 @@ public class ProjectDAO {
             "INSERT INTO PROJECTS " +
             "(title, monthsNumber, admin, manager) " +
             "VALUES (?, ?, ?, ?)";
+    private static final String queryTitle =
+            "SELECT title, monthsNumber, status " +
+            "FROM PROJECTS " +
+            "WHERE title = ?";
+    private static final String queryCreated =
+            "SELECT title, monthsNumber, status " +
+            "FROM PROJECTS " +
+            "WHERE status = 'CREATED'";
 
     /**
      * Constructor of the Project DAO.
@@ -79,5 +91,58 @@ public class ProjectDAO {
             // update DB
             statement.executeUpdate();
         }
+    }
+
+    /**
+     * Get a Project by its title.
+     * <br>This method gets a Project only from its title.
+     *
+     * @param title Title of the Project
+     *
+     * @return Project corresponding to the title.
+     * @throws SQLException DB error
+     */
+    public Project getFromTitle(String title) throws SQLException {
+        Project project = null;
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryTitle)) {
+
+            // set the parametric query
+            statement.setString(1, title);
+
+            // get the User
+            try (ResultSet queryResult = statement.executeQuery()) {
+                if (queryResult.next()) {
+                    project = new Project(
+                            queryResult.getString("TITLE"),
+                            Integer.parseInt(queryResult.getString("MONTHSNUMBER")),
+                            queryResult.getString("STATUS")
+                    );
+                }
+            }
+        }
+        return project;
+    }
+
+    /**
+     * Get all Project with status CREATED.
+     * <br>This method gets all the Projects with the status CREATED.
+     *
+     * @return Projects with Project.status == CREATED.
+     * @throws SQLException DB error
+     */
+    public List<Project> getCreatedProjects() throws SQLException {
+        List<Project> projects = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             ResultSet resultSet = connection.prepareStatement(queryCreated).executeQuery()) {
+            while (resultSet.next()) {
+                projects.add(new Project(
+                        resultSet.getString("TITLE"),
+                        resultSet.getInt("MONTHSNUMBER"),
+                        resultSet.getString("STATUS")
+                ));
+            }
+        }
+        return projects;
     }
 }

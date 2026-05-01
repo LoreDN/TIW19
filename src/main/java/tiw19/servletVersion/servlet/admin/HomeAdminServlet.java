@@ -11,9 +11,14 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.WebContext;
 import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
+import tiw19.servletVersion.dao.ProjectDAO;
+import tiw19.servletVersion.model.Project;
 import tiw19.servletVersion.model.User;
 
 import java.io.IOException;
+import java.sql.SQLException;
+
+import java.util.List;
 
 /**
  * Servlet for the Admin Home Page.
@@ -27,7 +32,8 @@ import java.io.IOException;
 @WebServlet("/homeAdmin")
 public class HomeAdminServlet extends HttpServlet {
     private static final String[] variables = {
-            "projectErrorMessage", "projectTitle", "projectDuration", "projectManager"
+            "projectErrorMessage", "projectTitle", "projectDuration", "projectManager",
+            "workPackageErrorMessage", "workPackageProjectTitle", "workPackageTitle", "workPackageStartingMonth", "workPackageEndingMonth"
     };
 
     /**
@@ -62,6 +68,17 @@ public class HomeAdminServlet extends HttpServlet {
                 context.setVariable(variable, session.getAttribute(variable));
                 session.removeAttribute(variable);
             }
+        }
+
+        // load Projects with status CREATED
+        try {
+            ProjectDAO projectDAO = new ProjectDAO();
+            List<Project> createdProjects = projectDAO.getCreatedProjects();
+            context.setVariable("createdProjects", createdProjects);
+        } catch (SQLException exception) {
+            String errorMessage = "[DB Error] : Error while getting Projects from DB!!!";
+            context.setVariable("workPackageErrorMessage", errorMessage);
+            context.setVariable("taskErrorMessage", errorMessage);
         }
 
         // load Web Page "/homeAdmin"
