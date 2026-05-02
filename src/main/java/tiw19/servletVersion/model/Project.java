@@ -62,4 +62,15 @@ public class Project {
         return status.equals("CONCLUDED");
     }
 
+    /**
+     * @see Object Equals method override for Project attributes.
+     */
+    @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof Project && (
+                title.equals(((Project) obj).title) &&
+                monthsNumber == ((Project) obj).monthsNumber &&
+                status.equals(((Project) obj).status)
+        ));
+    }
 }

@@ -32,6 +32,10 @@ public class ProjectDAO {
             "SELECT title, monthsNumber, status " +
             "FROM PROJECTS " +
             "WHERE title = ?";
+    private static final String queryID =
+            "SELECT title, monthsNumber, status " +
+            "FROM PROJECTS " +
+            "WHERE ID = ?";
     private static final String queryCreated =
             "SELECT title, monthsNumber, status " +
             "FROM PROJECTS " +
@@ -49,7 +53,6 @@ public class ProjectDAO {
      * @param projectTitle Title of the Project to check.
      *
      * @return True if the Project already exists, false otherwise.
-     *
      * @throws SQLException DB error
      */
     public boolean existProject(String projectTitle) throws SQLException {
@@ -109,6 +112,37 @@ public class ProjectDAO {
 
             // set the parametric query
             statement.setString(1, title);
+
+            // get the User
+            try (ResultSet queryResult = statement.executeQuery()) {
+                if (queryResult.next()) {
+                    project = new Project(
+                            queryResult.getString("TITLE"),
+                            Integer.parseInt(queryResult.getString("MONTHSNUMBER")),
+                            queryResult.getString("STATUS")
+                    );
+                }
+            }
+        }
+        return project;
+    }
+
+    /**
+     * Get a Project by its ID.
+     * <br>This method gets a Project only from its ID.
+     *
+     * @param ID ID of the Project
+     *
+     * @return Project corresponding to the title.
+     * @throws SQLException DB error
+     */
+    public Project getFromID(int ID) throws SQLException {
+        Project project = null;
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryID)) {
+
+            // set the parametric query
+            statement.setInt(1, ID);
 
             // get the User
             try (ResultSet queryResult = statement.executeQuery()) {

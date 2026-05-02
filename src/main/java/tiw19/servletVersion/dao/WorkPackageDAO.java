@@ -1,11 +1,15 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
+import tiw19.servletVersion.model.WorkPackage;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Work-Package Data-Access-Object.
@@ -32,6 +36,13 @@ public class WorkPackageDAO {
             "INSERT INTO WORK_PACKAGES " +
             "(orderNumber, title, startingMonth, endingMonth, projectID) " +
             "VALUES (?, ?, ?, ?, ?)";
+    private static final String queryAll =
+            "SELECT title, startingMonth, endingMonth, projectID " +
+            "FROM WORK_PACKAGES";
+    private static final String queryTitle =
+            "SELECT WORK_PACKAGES.title, startingMonth, endingMonth, projectID " +
+            "FROM WORK_PACKAGES JOIN PROJECTS ON WORK_PACKAGES.projectID = PROJECTS.ID " +
+            "WHERE PROJECTS.title = ? AND WORK_PACKAGES.title = ?";
 
     /**
      * Constructor of the Work-Package DAO.
@@ -46,7 +57,6 @@ public class WorkPackageDAO {
      * @param workPackageTitle Title of the Work-Package to check.
      *
      * @return True if the Work-Package already exists, false otherwise.
-     *
      * @throws SQLException DB error
      */
     public boolean existsWorkPackage(String projectTitle, String workPackageTitle) throws SQLException {
@@ -112,6 +122,63 @@ public class WorkPackageDAO {
 
             // update DB
             statement.executeUpdate();
+        }
+    }
+
+    /**
+     * Get all the Work-Packages.
+     *
+     * @return All Work-Packages.
+     * @throws SQLException DB error
+     */
+    public List<WorkPackage> getAll() throws SQLException {
+        List<WorkPackage> workPackages = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryAll)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                ProjectDAO projectDAO = new ProjectDAO();
+                while (resultSet.next()) {
+                    workPackages.add(new WorkPackage(
+                            resultSet.getString("TITLE"),
+                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
+                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                            projectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
+                    ));
+                }
+            }
+        }
+        return workPackages;
+    }
+
+    /**
+     * Get the Work-Package by its title.
+     * <br>This method gets a Work-Package only from its title (and the Project's one).
+     *
+     * @param projectTitle      Title of the Project
+     * @param workPackageTitle  Title of the Work-Package
+     *
+     * @return Work-Packages corresponding to the title.
+     * @throws SQLException DB error
+     */
+    public WorkPackage getFromTitle(String projectTitle, String workPackageTitle) throws SQLException {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryTitle)) {
+
+            // set the parametric query
+            statement.setString(1, projectTitle);
+            statement.setString(2, workPackageTitle);
+
+            // get the Work-Package
+            try (ResultSet resultSet = statement.executeQuery()) {
+                ProjectDAO projectDAO = new ProjectDAO();
+                resultSet.next();
+                return new WorkPackage(
+                        resultSet.getString("TITLE"),
+                        Integer.parseInt(resultSet.getString("STARTINGMONTH")),
+                        Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                        projectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
+                );
+            }
         }
     }
 }

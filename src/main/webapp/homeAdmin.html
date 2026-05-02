@@ -34,7 +34,7 @@
         <select id="WorkPackageProject" name="projectTitle" required>
             <option th:each="p : ${createdProjects}"
                     th:value="${p.getTitle()}"
-                    th:text="${p.getTitle()}"
+                    th:text="${p.getTitle() + ' | Months: ' + p.getMonthsNumber()}"
                     th:selected="${p.getTitle() == workPackageProjectTitle}">
             </option>
         </select><br/>
@@ -50,6 +50,41 @@
         <input type="number" id="WorkPackageEndingMonth" name="endingMonth" th:value="${workPackageEndingMonth}" min="1" required /><br/>
 
         <button type="submit">Save Work Package</button>
+    </form>
+
+    <!-- Task Creation form -->
+    <h2>Create a new Task for an existing Work-Package</h2>
+    <p th:if="${taskErrorMessage}" th:text="${taskErrorMessage}" style="color:red;"></p>
+    <form th:action="@{/homeAdmin/createTask}" method="post">
+        <!-- Project reference -->
+        <label for="TaskProject">Reference Project title:</label>
+        <select id="TaskProject" name="projectTitle" required>
+            <option th:each="p : ${createdProjects}"
+                    th:value="${p.getTitle()}"
+                    th:text="${p.getTitle() + ' | Months: ' + p.getMonthsNumber()}"
+                    th:selected="${p.getTitle() == taskProjectTitle}">
+            </option>
+        </select><br/>
+        <label for="TaskWorkPackage">Reference Work-Package title:</label>
+        <select id="TaskWorkPackage" name="workPackageTitles" required>
+            <option th:each="wp : ${workPackages}"
+                    th:value="${wp.getProject().getTitle() + '###' + wp.getTitle()}"
+                    th:text="${wp.getProject().getTitle()} + ' - ' + ${wp.getTitle() + ' | M' + wp.getStartingMonth() + ' -> M' + wp.getEndingMonth()}"
+                    th:selected="${wp.getProject().getTitle + '###' + wp.getTitle() == taskWorkPackageTitles}">
+            </option>
+        </select><br/>
+
+        <!-- Task parameters -->
+        <label for="TaskTitle">Title:</label>
+        <input type="text" id="TaskTitle" name="title" th:value="${taskTitle}" required /><br/>
+
+        <label for="TaskStartingMonth">Starting Month (according to the reference Work-Package):</label>
+        <input type="number" id="TaskStartingMonth" name="startingMonth" th:value="${taskStartingMonth}" min="1" required /><br/>
+
+        <label for="TaskEndingMonth">Ending Month (according to the reference Work-Package):</label>
+        <input type="number" id="TaskEndingMonth" name="endingMonth" th:value="${taskEndingMonth}" min="1" required /><br/>
+
+        <button type="submit">Save Task</button>
     </form>
 </body>
 </html>

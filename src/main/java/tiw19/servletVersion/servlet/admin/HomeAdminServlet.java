@@ -12,8 +12,10 @@ import org.thymeleaf.context.WebContext;
 import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
 import tiw19.servletVersion.dao.ProjectDAO;
+import tiw19.servletVersion.dao.WorkPackageDAO;
 import tiw19.servletVersion.model.Project;
 import tiw19.servletVersion.model.User;
+import tiw19.servletVersion.model.WorkPackage;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -33,7 +35,8 @@ import java.util.List;
 public class HomeAdminServlet extends HttpServlet {
     private static final String[] variables = {
             "projectErrorMessage", "projectTitle", "projectDuration", "projectManager",
-            "workPackageErrorMessage", "workPackageProjectTitle", "workPackageTitle", "workPackageStartingMonth", "workPackageEndingMonth"
+            "workPackageErrorMessage", "workPackageProjectTitle", "workPackageTitle", "workPackageStartingMonth", "workPackageEndingMonth",
+            "taskErrorMessage", "taskProjectTitle", "taskWorkPackageTitles", "taskTitle", "taskStartingMonth", "taskEndingMonth"
     };
 
     /**
@@ -78,6 +81,16 @@ public class HomeAdminServlet extends HttpServlet {
         } catch (SQLException exception) {
             String errorMessage = "[DB Error] : Error while getting Projects from DB!!!";
             context.setVariable("workPackageErrorMessage", errorMessage);
+            context.setVariable("taskErrorMessage", errorMessage);
+        }
+
+        // load Work-Packages
+        try {
+            WorkPackageDAO workPackageDAO = new WorkPackageDAO();
+            List<WorkPackage> workPackages = workPackageDAO.getAll();
+            context.setVariable("workPackages", workPackages);
+        } catch (SQLException exception) {
+            String errorMessage = "[DB Error] : Error while getting Work-Packages from DB!!!";
             context.setVariable("taskErrorMessage", errorMessage);
         }
 
