@@ -25,6 +25,10 @@ public class UserDAO {
             "SELECT name, surname, username, photo, role " +
             "FROM USERS " +
             "WHERE username = ?";
+    private static final String queryID =
+            "SELECT ID " +
+            "FROM USERS " +
+            "WHERE username = ?";
 
     /**
      * Constructor of the User DAO.
@@ -97,5 +101,30 @@ public class UserDAO {
             }
         }
         return user;
+    }
+
+    /**
+     * Get the ID of a User.
+     *
+     * @param username Username of the User.
+     *
+     * @return User.ID
+     * @throws SQLException DB error
+     */
+    public static int getID(String username) throws SQLException {
+        int userID;
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryID)) {
+
+            // set the parametric query
+            statement.setString(1, username);
+
+            // get the userID
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                userID = resultSet.getInt("ID");
+            }
+        }
+        return userID;
     }
 }
