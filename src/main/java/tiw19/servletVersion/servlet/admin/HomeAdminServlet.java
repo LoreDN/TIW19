@@ -36,7 +36,7 @@ public class HomeAdminServlet extends HttpServlet {
     private static final String[] variables = {
             "projectErrorMessage", "projectTitle", "projectDuration", "projectManager",
             "workPackageErrorMessage", "workPackageProjectTitle", "workPackageTitle", "workPackageStartingMonth", "workPackageEndingMonth",
-            "taskErrorMessage", "taskProjectTitle", "taskWorkPackageTitles", "taskTitle", "taskStartingMonth", "taskEndingMonth"
+            "taskErrorMessage", "taskWorkPackageTitles", "taskTitle", "taskStartingMonth", "taskEndingMonth"
     };
 
     /**
@@ -50,7 +50,7 @@ public class HomeAdminServlet extends HttpServlet {
      * @throws IOException Connection error
      */
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // check User
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("user") == null || !((User) session.getAttribute("user")).isAdmin()) {
@@ -100,7 +100,7 @@ public class HomeAdminServlet extends HttpServlet {
      * @see HttpServlet Default implementation.
      */
     @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        //
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        super.doPost(request, response);
     }
 }

@@ -7,11 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-import tiw19.servletVersion.dao.ProjectDAO;
 import tiw19.servletVersion.dao.WorkPackageDAO;
 import tiw19.servletVersion.dao.TaskDAO;
 import tiw19.servletVersion.model.User;
-import tiw19.servletVersion.model.Project;
 import tiw19.servletVersion.model.WorkPackage;
 
 import java.io.IOException;
@@ -51,14 +49,22 @@ public class CreateTaskServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String projectTitle = request.getParameter("projectTitle");
         String taskWPValues = request.getParameter("workPackageTitles");
-        String[] parts = taskWPValues.split("###");
-        String workPackageProjectTitle = parts[0];
-        String workPackageTitle = parts[1];
         String taskTitle = request.getParameter("title");
         String taskStartingMonth  = request.getParameter("startingMonth");
         String taskEndingMonth  = request.getParameter("endingMonth");
+        String projectTitle, workPackageTitle;
+        try {
+            String[] parts = taskWPValues.split("###");
+            projectTitle = parts[0];
+            workPackageTitle = parts[1];
+        } catch (Exception exception) {
+            reloadWebPage("Work-Package selection is required!!!",
+                    taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
+                    request, response
+            );
+            return;
+        }
 
         // check user
         HttpSession session = request.getSession(false);
@@ -77,14 +83,9 @@ public class CreateTaskServlet extends HttpServlet {
             taskErrorMessage = "All fields are required!!!";
         } else {
             try {
-                Project project = ProjectDAO.getFromTitle(((User) session.getAttribute("user")).getUsername(), projectTitle);
-                WorkPackage workPackage = WorkPackageDAO.getFromTitle(((User) session.getAttribute("user")).getUsername(), workPackageProjectTitle, workPackageTitle);
-                // Project
-                if (project == null) taskErrorMessage = "[Task Error] : Project not found!!!";
+                WorkPackage workPackage = WorkPackageDAO.getFromTitle(((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle);
                 // Work-Package
-                else if (workPackage == null) taskErrorMessage = "[Task Error] : Work-Package not found!!!";
-                else if (!workPackage.getProject().equals(project))
-                    taskErrorMessage = "[Task Error] : Work-Package \"" + workPackageTitle + "\" is not part of the Project \"" + projectTitle + "\"!!!";
+                if (workPackage == null) taskErrorMessage = "[Task Error] : Work-Package not found!!!";
                 // starting month
                 else if (Integer.parseInt(taskStartingMonth) < 1)
                     taskErrorMessage = "[Task Error] : Task starting month must be greater than 0!!!";
@@ -109,7 +110,7 @@ public class CreateTaskServlet extends HttpServlet {
         // form error
         if (taskErrorMessage != null) {
             reloadWebPage(taskErrorMessage,
-                    projectTitle, taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
+                    taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
                     request, response
             );
             return;
@@ -120,7 +121,7 @@ public class CreateTaskServlet extends HttpServlet {
             // check if Task already exists
             if (TaskDAO.existsTask(((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle, taskTitle)) {
                 reloadWebPage("[Task Error] : Task with title \"" + taskTitle + "\" already exists for Work-Package \"" + workPackageTitle + "\" in the Project \"" + projectTitle + "\"!!!",
-                        projectTitle ,taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
+                        taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
                         request, response
                 );
             } else {
@@ -133,18 +134,17 @@ public class CreateTaskServlet extends HttpServlet {
             }
         } catch (SQLException exception) {
             reloadWebPage("[DB Error] : " + exception.getMessage(),
-                    projectTitle, taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
+                    taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
                     request, response
             );
         }
     }
 
     // reload the Web Page showing the Error
-    private void reloadWebPage(String taskErrorMessage, String taskProjectTitle, String taskWPValues, String taskTitle, String taskStartingMonth, String taskEndingMonth,
+    private void reloadWebPage(String taskErrorMessage, String taskWPValues, String taskTitle, String taskStartingMonth, String taskEndingMonth,
                                HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession(false);
         session.setAttribute("taskErrorMessage", taskErrorMessage);
-        session.setAttribute("taskProjectTitle", taskProjectTitle);
         session.setAttribute("taskWorkPackageTitles", taskWPValues);
         session.setAttribute("taskTitle", taskTitle);
         session.setAttribute("taskStartingMonth", taskStartingMonth);

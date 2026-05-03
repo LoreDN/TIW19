@@ -57,20 +57,12 @@
     <p th:if="${taskErrorMessage}" th:text="${taskErrorMessage}" style="color:red;"></p>
     <form th:action="@{/homeAdmin/createTask}" method="post">
         <!-- Project reference -->
-        <label for="TaskProject">Reference Project title:</label>
-        <select id="TaskProject" name="projectTitle" required>
-            <option th:each="p : ${createdProjects}"
-                    th:value="${p.getTitle()}"
-                    th:text="${p.getTitle() + ' | Months: ' + p.getMonthsNumber()}"
-                    th:selected="${p.getTitle() == taskProjectTitle}">
-            </option>
-        </select><br/>
         <label for="TaskWorkPackage">Reference Work-Package title:</label>
         <select id="TaskWorkPackage" name="workPackageTitles" required>
             <option th:each="wp : ${workPackages}"
                     th:value="${wp.getProject().getTitle() + '###' + wp.getTitle()}"
                     th:text="${wp.getProject().getTitle()} + ' - ' + ${wp.getTitle() + ' | M' + wp.getStartingMonth() + ' -> M' + wp.getEndingMonth()}"
-                    th:selected="${wp.getProject().getTitle + '###' + wp.getTitle() == taskWorkPackageTitles}">
+                    th:selected="${wp.getProject().getTitle() + '###' + wp.getTitle() == taskWorkPackageTitles}">
             </option>
         </select><br/>
 
