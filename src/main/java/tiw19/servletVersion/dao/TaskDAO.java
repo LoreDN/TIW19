@@ -2,14 +2,13 @@ package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
 import tiw19.servletVersion.model.Task;
-import tiw19.servletVersion.model.WorkPackage;
-
-import java.math.BigDecimal;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import java.math.BigDecimal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +46,14 @@ public class TaskDAO {
             "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
             "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
             "WHERE P.manager = ?";
+    private static final String queryTitle =
+            "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+            "WHERE P.title = ? AND P.manager = ? AND WP.title = ? AND T.title = ?";
+    private static final String queryID =
+            "SELECT T.ID " +
+            "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+            "WHERE P.title = ? AND P.manager = ? AND WP.title = ? AND T.title = ?";
 
     /**
      * Check if a Task already exists.
@@ -146,7 +153,7 @@ public class TaskDAO {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryAll)) {
 
-            // set teh parametric query
+            // set the parametric query
             statement.setString(1, manager);
 
             // get the Work-Packages
@@ -163,5 +170,74 @@ public class TaskDAO {
             }
         }
         return tasks;
+    }
+
+    /**
+     * Get the Task by its title.
+     * <br>This static method gets a Task only from its title (and the Project's one).
+     *
+     * @param manager           Manager of the Project.
+     * @param projectTitle      Title of the Project.
+     * @param workPackageTitle  Title of the Work-Package.
+     * @param taskTitle         Title of the Task.
+     *
+     * @return Task corresponding to the title.
+     * @throws SQLException DB error
+     */
+    public static Task getFromTitle(String manager, String projectTitle, String workPackageTitle, String taskTitle) throws SQLException {
+        Task task;
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryTitle)) {
+
+            // set the parametric query
+            statement.setString(1, projectTitle);
+            statement.setString(2, manager);
+            statement.setString(3, workPackageTitle);
+            statement.setString(4, taskTitle);
+
+            // get the Task
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                task = new Task(
+                        resultSet.getString("TITLE"),
+                        Integer.parseInt(resultSet.getString("STARTINGMONTH")),
+                        Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                        ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID"))),
+                        WorkPackageDAO.getFromID(Integer.parseInt(resultSet.getString("WORKPACKAGEID")))
+                );
+            }
+        }
+        return task;
+    }
+
+    /**
+     * Get the ID of a Task.
+     *
+     * @param manager           Manager of the Project.
+     * @param projectTitle      Title of the Project.
+     * @param workPackageTitle  Title of the Work-Package.
+     * @param taskTitle         Title of the Task.
+     *
+     * @return Task.ID
+     * @throws SQLException DB error
+     */
+    public static int getID(String manager, String projectTitle, String workPackageTitle, String taskTitle) throws SQLException {
+        int taskID;
+        try (Connection connection = DBConnection.getConnection();
+            PreparedStatement statement = connection.prepareStatement(queryID)) {
+
+            // set the parametric query
+            statement.setString(1, projectTitle);
+            statement.setString(2, manager);
+            statement.setString(3, workPackageTitle);
+            statement.setString(4, taskTitle);
+
+            // get the taskID
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                taskID = resultSet.getInt("ID");
+            }
+        }
+        return taskID;
     }
 }
