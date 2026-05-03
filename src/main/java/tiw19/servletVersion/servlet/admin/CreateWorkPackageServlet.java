@@ -76,12 +76,12 @@ public class CreateWorkPackageServlet extends HttpServlet {
                 if (project == null) workPackageErrorMessage = "[Work-Package Error] : Project not found!!!";
                 // starting month
                 else if (Integer.parseInt(workPackageStartingMonth) < 1)
-                    workPackageErrorMessage = "[Work-Package Error] : Work-Package starting month must be greater than 0!!!";
+                    workPackageErrorMessage = "[Work-Package Error] : Work-Package starting month must be greater than 1!!!";
                 else if (Integer.parseInt(workPackageStartingMonth) > project.getMonthsNumber())
                     workPackageErrorMessage = "[Work-Package Error] : Work-Package starting month cannot be greater than the Project duration!!!";
                 // ending month
                 else if (Integer.parseInt(workPackageEndingMonth) < 1)
-                    workPackageErrorMessage = "[Work-Package Error] : Work-Package ending month must be greater than 0!!!";
+                    workPackageErrorMessage = "[Work-Package Error] : Work-Package ending month must be greater than 1!!!";
                 else if (Integer.parseInt(workPackageEndingMonth) < Integer.parseInt(workPackageStartingMonth))
                     workPackageErrorMessage = "[Work-Package Error] : Work-Package ending month cannot be smaller than the starting one!!!";
                 else if (Integer.parseInt(workPackageEndingMonth) > project.getMonthsNumber())

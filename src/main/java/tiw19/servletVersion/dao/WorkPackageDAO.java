@@ -44,12 +44,16 @@ public class WorkPackageDAO {
             "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
             "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
             "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
+    private static final String queryID =
+            "SELECT title, startingMonth, endingMonth, projectID " +
+            "FROM WORK_PACKAGES " +
+            "WHERE ID = ?";
 
     /**
      * Check if a Work-Package already exists.
      * <br>This static method checks if a Work-Package already exists, by query for the title.
      *
-     * @param admin             Admin of teh Project referring to the Work-Package.
+     * @param admin             Admin of the Project referring to the Work-Package.
      * @param projectTitle      Title of the Project referring to the Work-Package.
      * @param workPackageTitle  Title of the Work-Package to check.
      *
@@ -138,7 +142,7 @@ public class WorkPackageDAO {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryAll)) {
 
-            // set teh parametric query
+            // set the parametric query
             statement.setString(1, admin);
 
             // get the Work-Packages
@@ -160,9 +164,9 @@ public class WorkPackageDAO {
      * Get the Work-Package by its title.
      * <br>This static method gets a Work-Package only from its title (and the Project's one).
      *
-     * @param admin             Admin of teh Project.
-     * @param projectTitle      Title of the Project
-     * @param workPackageTitle  Title of the Work-Package
+     * @param admin             Admin of the Project.
+     * @param projectTitle      Title of the Project.
+     * @param workPackageTitle  Title of the Work-Package.
      *
      * @return Work-Packages corresponding to the title.
      * @throws SQLException DB error
@@ -186,6 +190,38 @@ public class WorkPackageDAO {
                         Integer.parseInt(resultSet.getString("ENDINGMONTH")),
                         ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
                 );
+            }
+        }
+        return workPackage;
+    }
+
+    /**
+     * Get a Work-Package by its ID.
+     * <br>This static method gets a Work-Package only from its ID.
+     *
+     * @param ID ID of the Work-Package.
+     *
+     * @return Work-Package corresponding to the ID.
+     * @throws SQLException DB error
+     */
+    public static WorkPackage getFromID(int ID) throws SQLException {
+        WorkPackage workPackage = null;
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryID)) {
+
+            // set the parametric query
+            statement.setInt(1, ID);
+
+            // get the User
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    workPackage = new WorkPackage(
+                            resultSet.getString("TITLE"),
+                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
+                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                            ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
+                    );
+                }
             }
         }
         return workPackage;

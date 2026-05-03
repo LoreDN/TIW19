@@ -35,8 +35,8 @@ public class UserDAO {
      * Get a logged User.
      * <br>This static method checks the credentials of a Client, and if valid returns the corresponding User.
      *
-     * @param username Username of the Client
-     * @param password Password of teh Client
+     * @param username Username of the Client.
+     * @param password Password of the Client.
      *
      * @return User corresponding to the couple (username,password)
      * @throws SQLException DB error
@@ -70,7 +70,7 @@ public class UserDAO {
      * Get a logged User by its username.
      * <br>This static method gets a User only from a Client username.
      *
-     * @param username Username of the Client
+     * @param username Username of the Client.
      *
      * @return User corresponding to the username.
      * @throws SQLException DB error

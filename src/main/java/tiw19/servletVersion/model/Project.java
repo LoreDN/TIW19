@@ -11,6 +11,7 @@ package tiw19.servletVersion.model;
 public class Project {
     private final String title;
     private final int monthsNumber;
+    private final String admin;
     private final String status; // CREATED, ASSIGNED, CONCLUDED
 
     /**
@@ -18,11 +19,13 @@ public class Project {
      *
      * @param title         Title of the Project.
      * @param monthsNumber  Duration (in months) of the Project.
+     * @param admin         Amin of the project.
      * @param status        Status of the Project (CREATED vs ASSIGNED vs CONCLUDED).
      */
-    public Project(String title, int monthsNumber, String status) {
+    public Project(String title, int monthsNumber, String admin, String status) {
         this.title = title;
         this.monthsNumber = monthsNumber;
+        this.admin = admin;
         this.status = status;
     }
 
@@ -45,6 +48,15 @@ public class Project {
     }
 
     /**
+     * Getter for the attribute admin.
+     *
+     * @return Project.admin
+     */
+    public String getAdmin() {
+        return admin;
+    }
+
+    /**
      * Check if the Project status is ASSIGNED.
      *
      * @return status == ASSIGNED ?
@@ -60,17 +72,5 @@ public class Project {
      */
     public boolean isConcluded() {
         return status.equals("CONCLUDED");
-    }
-
-    /**
-     * @see Object Equals method override for Project attributes.
-     */
-    @Override
-    public boolean equals(Object obj) {
-        return (obj instanceof Project && (
-                title.equals(((Project) obj).title) &&
-                monthsNumber == ((Project) obj).monthsNumber &&
-                status.equals(((Project) obj).status)
-        ));
     }
 }

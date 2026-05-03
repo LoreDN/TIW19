@@ -74,7 +74,7 @@ public class CreateProjectServlet extends HttpServlet {
                 if (user == null) projectErrorMessage = "[Project Error] : User not found!!!";
                 else if (!user.isManager()) projectErrorMessage = "[Project Error] : User is not manager!!!";
                 // duration
-                else if (Integer.parseInt(projectDuration) < 1) projectErrorMessage = "[Project Error] : Project duration (in months) must be greater than 0!!!";
+                else if (Integer.parseInt(projectDuration) < 1) projectErrorMessage = "[Project Error] : Project duration (in months) must be greater than 1!!!";
             } catch (NumberFormatException exception) {
                 projectErrorMessage = "Project duration must be a number!!!";
             } catch (SQLException exception) {

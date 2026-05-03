@@ -1,12 +1,18 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
+import tiw19.servletVersion.model.Task;
+import tiw19.servletVersion.model.WorkPackage;
 
 import java.math.BigDecimal;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Task Data-Access-Object.
@@ -37,6 +43,10 @@ public class TaskDAO {
             "INSERT INTO TASKS " +
             "(orderNumber, title, startingMonth, endingMonth, workPackageID) " +
             "VALUES (?, ?, ?, ?, ?)";
+    private static final String queryAll =
+            "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+            "WHERE P.manager = ?";
 
     /**
      * Check if a Task already exists.
@@ -121,5 +131,37 @@ public class TaskDAO {
             // update DB
             statement.executeUpdate();
         }
+    }
+
+    /**
+     * Get all the Tasks.
+     *
+     * @param manager Manager of the Projects (and Tasks).
+     *
+     * @return All Tasks.
+     * @throws SQLException DB error
+     */
+    public static List<Task> getAll(String manager) throws SQLException {
+        List<Task> tasks = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryAll)) {
+
+            // set teh parametric query
+            statement.setString(1, manager);
+
+            // get the Work-Packages
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    tasks.add(new Task(
+                            resultSet.getString("TITLE"),
+                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
+                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                            ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID"))),
+                            WorkPackageDAO.getFromID(Integer.parseInt(resultSet.getString("WORKPACKAGEID")))
+                    ));
+                }
+            }
+        }
+        return tasks;
     }
 }

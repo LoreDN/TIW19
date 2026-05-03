@@ -54,6 +54,16 @@ public class CreateTaskServlet extends HttpServlet {
         String taskStartingMonth  = request.getParameter("startingMonth");
         String taskEndingMonth  = request.getParameter("endingMonth");
         String projectTitle, workPackageTitle;
+
+        // check user
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("user") == null || !((User) session.getAttribute("user")).isAdmin()) {
+            // fallback to "/login"
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        // parse parameters
         try {
             String[] parts = taskWPValues.split("###");
             projectTitle = parts[0];
@@ -63,14 +73,6 @@ public class CreateTaskServlet extends HttpServlet {
                     taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
                     request, response
             );
-            return;
-        }
-
-        // check user
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("user") == null || !((User) session.getAttribute("user")).isAdmin()) {
-            // fallback to "/login"
-            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 
@@ -88,14 +90,14 @@ public class CreateTaskServlet extends HttpServlet {
                 if (workPackage == null) taskErrorMessage = "[Task Error] : Work-Package not found!!!";
                 // starting month
                 else if (Integer.parseInt(taskStartingMonth) < 1)
-                    taskErrorMessage = "[Task Error] : Task starting month must be greater than 0!!!";
+                    taskErrorMessage = "[Task Error] : Task starting month must be greater than 1!!!";
                 else if (Integer.parseInt(taskStartingMonth) < workPackage.getStartingMonth())
                     taskErrorMessage = "[Task Error] : Task starting month cannot be smaller than the Work-Package one!!!";
                 else if (Integer.parseInt(taskStartingMonth)  > workPackage.getEndingMonth())
                     taskErrorMessage = "[Task Error] : Task starting month cannot be greater than the Work-Package ending one!!!";
                 // ending month
                 else if (Integer.parseInt(taskEndingMonth) < 1)
-                    taskErrorMessage = "[Task Error] : Task ending month must be greater than 0!!!";
+                    taskErrorMessage = "[Task Error] : Task ending month must be greater than 1!!!";
                 else if (Integer.parseInt(taskEndingMonth) < Integer.parseInt(taskStartingMonth))
                     taskErrorMessage = "[Task Error] : Task ending month cannot be smaller than the starting one!!!";
                 else if (Integer.parseInt(taskEndingMonth) > workPackage.getEndingMonth())
