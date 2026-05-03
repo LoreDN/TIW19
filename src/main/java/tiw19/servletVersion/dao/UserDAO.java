@@ -33,7 +33,7 @@ public class UserDAO {
 
     /**
      * Get a logged User.
-     * <br>This method checks the credentials of a Client, and if valid returns the corresponding User.
+     * <br>This static method checks the credentials of a Client, and if valid returns the corresponding User.
      *
      * @param username Username of the Client
      * @param password Password of teh Client
@@ -41,7 +41,7 @@ public class UserDAO {
      * @return User corresponding to the couple (username,password)
      * @throws SQLException DB error
      */
-    public User checkCredentials(String username, String password) throws SQLException {
+    public static User checkCredentials(String username, String password) throws SQLException {
         User user = null;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryCredentials)) {
@@ -68,14 +68,14 @@ public class UserDAO {
 
     /**
      * Get a logged User by its username.
-     * <br>This method gets a User only from a Client username.
+     * <br>This static method gets a User only from a Client username.
      *
      * @param username Username of the Client
      *
      * @return User corresponding to the username.
      * @throws SQLException DB error
      */
-    public User getFromUsername(String username) throws SQLException {
+    public static User getFromUsername(String username) throws SQLException {
         User user = null;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryUsername)) {

@@ -69,8 +69,7 @@ public class CreateProjectServlet extends HttpServlet {
             projectErrorMessage = "All fields are required!!!";
         } else {
             try {
-                UserDAO userDAO = new UserDAO();
-                User user = userDAO.getFromUsername(projectManager);
+                User user = UserDAO.getFromUsername(projectManager);
                 // manager
                 if (user == null) projectErrorMessage = "[Project Error] : User not found!!!";
                 else if (!user.isManager()) projectErrorMessage = "[Project Error] : User is not manager!!!";
@@ -94,14 +93,13 @@ public class CreateProjectServlet extends HttpServlet {
 
         // DB-side validation
         try {
-            ProjectDAO projectDAO = new ProjectDAO();
-            if (projectDAO.existProject(projectTitle)) {
+            if (ProjectDAO.existProject(((User) session.getAttribute("user")).getUsername(), projectTitle)) {
                 reloadWebPage("[Project Error] : Project with title \"" + projectTitle + "\" already exists!!!",
                         projectTitle, projectDuration, projectManager,
                         request, response
                 );
             } else {
-                projectDAO.addNew(
+                ProjectDAO.addNew(
                         projectTitle, Integer.parseInt(projectDuration),
                         ((User) session.getAttribute("user")).getUsername(), projectManager
                 );

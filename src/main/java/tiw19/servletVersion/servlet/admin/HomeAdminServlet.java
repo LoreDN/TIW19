@@ -75,8 +75,7 @@ public class HomeAdminServlet extends HttpServlet {
 
         // load Projects with status CREATED
         try {
-            ProjectDAO projectDAO = new ProjectDAO();
-            List<Project> createdProjects = projectDAO.getCreatedProjects();
+            List<Project> createdProjects = ProjectDAO.getCreatedProjects(((User) session.getAttribute("user")).getUsername());
             context.setVariable("createdProjects", createdProjects);
         } catch (SQLException exception) {
             String errorMessage = "[DB Error] : Error while getting Projects from DB!!!";
@@ -86,8 +85,7 @@ public class HomeAdminServlet extends HttpServlet {
 
         // load Work-Packages
         try {
-            WorkPackageDAO workPackageDAO = new WorkPackageDAO();
-            List<WorkPackage> workPackages = workPackageDAO.getAll();
+            List<WorkPackage> workPackages = WorkPackageDAO.getAll(((User) session.getAttribute("user")).getUsername());
             context.setVariable("workPackages", workPackages);
         } catch (SQLException exception) {
             String errorMessage = "[DB Error] : Error while getting Work-Packages from DB!!!";

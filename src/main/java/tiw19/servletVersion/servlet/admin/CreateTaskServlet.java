@@ -77,10 +77,8 @@ public class CreateTaskServlet extends HttpServlet {
             taskErrorMessage = "All fields are required!!!";
         } else {
             try {
-                ProjectDAO projectDAO = new ProjectDAO();
-                Project project = projectDAO.getFromTitle(projectTitle);
-                WorkPackageDAO workPackageDAO = new WorkPackageDAO();
-                WorkPackage workPackage = workPackageDAO.getFromTitle(workPackageProjectTitle, workPackageTitle);
+                Project project = ProjectDAO.getFromTitle(((User) session.getAttribute("user")).getUsername(), projectTitle);
+                WorkPackage workPackage = WorkPackageDAO.getFromTitle(((User) session.getAttribute("user")).getUsername(), workPackageProjectTitle, workPackageTitle);
                 // Project
                 if (project == null) taskErrorMessage = "[Task Error] : Project not found!!!";
                 // Work-Package
@@ -120,16 +118,15 @@ public class CreateTaskServlet extends HttpServlet {
         // DB-side validation
         try {
             // check if Task already exists
-            TaskDAO taskDAO = new TaskDAO();
-            if (taskDAO.existsTask(projectTitle, workPackageTitle, taskTitle)) {
+            if (TaskDAO.existsTask(((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle, taskTitle)) {
                 reloadWebPage("[Task Error] : Task with title \"" + taskTitle + "\" already exists for Work-Package \"" + workPackageTitle + "\" in the Project \"" + projectTitle + "\"!!!",
                         projectTitle ,taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
                         request, response
                 );
             } else {
                 // create the new Task
-                taskDAO.addNew(
-                        projectTitle, workPackageTitle, taskTitle,
+                TaskDAO.addNew(
+                        ((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle, taskTitle,
                         Integer.parseInt(taskStartingMonth), Integer.parseInt(taskEndingMonth)
                 );
                 response.sendRedirect(request.getContextPath() + "/homeAdmin");

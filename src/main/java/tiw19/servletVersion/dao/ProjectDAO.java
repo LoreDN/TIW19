@@ -23,7 +23,7 @@ public class ProjectDAO {
     private static final String queryExists =
             "SELECT count(*) " +
             "FROM PROJECTS " +
-            "WHERE title = ?";
+            "WHERE title = ? AND admin = ?";
     private static final String insertNew =
             "INSERT INTO PROJECTS " +
             "(title, monthsNumber, admin, manager) " +
@@ -31,7 +31,7 @@ public class ProjectDAO {
     private static final String queryTitle =
             "SELECT title, monthsNumber, status " +
             "FROM PROJECTS " +
-            "WHERE title = ?";
+            "WHERE title = ? AND admin = ?";
     private static final String queryID =
             "SELECT title, monthsNumber, status " +
             "FROM PROJECTS " +
@@ -39,28 +39,25 @@ public class ProjectDAO {
     private static final String queryCreated =
             "SELECT title, monthsNumber, status " +
             "FROM PROJECTS " +
-            "WHERE status = 'CREATED'";
-
-    /**
-     * Constructor of the Project DAO.
-     */
-    public ProjectDAO() {}
+            "WHERE status = 'CREATED' AND admin = ?";
 
     /**
      * Check if a Project already exists.
-     * <br>This method checks if a Project already exists, by query for the title.
+     * <br>This static method checks if a Project already exists, by query for the title.
      *
-     * @param projectTitle Title of the Project to check.
+     * @param admin         Admin of the Project to check.
+     * @param projectTitle  Title of the Project to check.
      *
      * @return True if the Project already exists, false otherwise.
      * @throws SQLException DB error
      */
-    public boolean existProject(String projectTitle) throws SQLException {
+    public static boolean existProject(String admin, String projectTitle) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryExists)) {
 
             // set the parametric Query
             statement.setString(1, projectTitle);
+            statement.setString(2, admin);
 
             // get the Project
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -72,7 +69,7 @@ public class ProjectDAO {
 
     /**
      * Add a new Project.
-     * <br>This method adds a new Project into the DB.
+     * <br>This static method adds a new Project into the DB.
      *
      * @param projectTitle      Title of the Project.
      * @param projectDuration   Duration (in months) of the Project.
@@ -81,7 +78,7 @@ public class ProjectDAO {
      *
      * @throws SQLException     DB error
      */
-    public void addNew(String projectTitle, int projectDuration, String projectAdmin, String projectManager) throws SQLException {
+    public static void addNew(String projectTitle, int projectDuration, String projectAdmin, String projectManager) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(insertNew)) {
 
@@ -98,20 +95,22 @@ public class ProjectDAO {
 
     /**
      * Get a Project by its title.
-     * <br>This method gets a Project only from its title.
+     * <br>This static method gets a Project only from its title.
      *
+     * @param admin Admin of the Project.
      * @param title Title of the Project
      *
      * @return Project corresponding to the title.
      * @throws SQLException DB error
      */
-    public Project getFromTitle(String title) throws SQLException {
+    public static Project getFromTitle(String admin, String title) throws SQLException {
         Project project = null;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryTitle)) {
 
             // set the parametric query
             statement.setString(1, title);
+            statement.setString(2, admin);
 
             // get the User
             try (ResultSet queryResult = statement.executeQuery()) {
@@ -129,14 +128,14 @@ public class ProjectDAO {
 
     /**
      * Get a Project by its ID.
-     * <br>This method gets a Project only from its ID.
+     * <br>This static method gets a Project only from its ID.
      *
      * @param ID ID of the Project
      *
      * @return Project corresponding to the title.
      * @throws SQLException DB error
      */
-    public Project getFromID(int ID) throws SQLException {
+    public static Project getFromID(int ID) throws SQLException {
         Project project = null;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryID)) {
@@ -160,21 +159,30 @@ public class ProjectDAO {
 
     /**
      * Get all Project with status CREATED.
-     * <br>This method gets all the Projects with the status CREATED.
+     * <br>This static method gets all the Projects with the status CREATED.
+     *
+     * @param admin Admin of the Projects.
      *
      * @return Projects with Project.status == CREATED.
      * @throws SQLException DB error
      */
-    public List<Project> getCreatedProjects() throws SQLException {
+    public static List<Project> getCreatedProjects(String admin) throws SQLException {
         List<Project> projects = new ArrayList<>();
         try (Connection connection = DBConnection.getConnection();
-             ResultSet resultSet = connection.prepareStatement(queryCreated).executeQuery()) {
-            while (resultSet.next()) {
-                projects.add(new Project(
-                        resultSet.getString("TITLE"),
-                        resultSet.getInt("MONTHSNUMBER"),
-                        resultSet.getString("STATUS")
-                ));
+             PreparedStatement statement = connection.prepareStatement(queryCreated)) {
+
+            // set the parametric query
+            statement.setString(1, admin);
+
+            // get the Projects
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    projects.add(new Project(
+                            resultSet.getString("TITLE"),
+                            resultSet.getInt("MONTHSNUMBER"),
+                            resultSet.getString("STATUS")
+                    ));
+                }
             }
         }
         return projects;

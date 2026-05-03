@@ -22,13 +22,13 @@ public class TaskDAO {
             "FROM TASKS AS T JOIN (" +
                     "SELECT WP.ID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-                    "WHERE P.title = ? AND WP.title = ?" +
+                    "WHERE P.title = ? AND P.admin = ? AND WP.title = ?" +
             ") AS WP ON T.workPackageID = WP.ID " +
             "WHERE T.title = ?";
     private static final String queryWorkPackageID =
             "SELECT WP.ID, WP.orderNumber " +
             "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-            "WHERE P.title = ? AND WP.title = ?";
+            "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
     private static final String queryTasksNumber =
             "SELECT count(*) " +
             "FROM TASKS " +
@@ -39,14 +39,10 @@ public class TaskDAO {
             "VALUES (?, ?, ?, ?, ?)";
 
     /**
-     * Constructor of the Task DAO.
-     */
-    public TaskDAO() {}
-
-    /**
      * Check if a Task already exists.
-     * <br>This method checks if a Task already exists, by query for the title.
+     * <br>This static method checks if a Task already exists, by query for the title.
      *
+     * @param admin             Admin of the Project referring to the Task.
      * @param projectTitle      Title of the Project referring to the Task.
      * @param workPackageTitle  Title of the Work-Package referring to the Task.
      * @param taskTitle         Title of the Task to check.
@@ -55,14 +51,15 @@ public class TaskDAO {
      *
      * @throws SQLException DB error
      */
-    public boolean existsTask(String projectTitle, String workPackageTitle, String taskTitle) throws SQLException {
+    public static boolean existsTask(String admin, String projectTitle, String workPackageTitle, String taskTitle) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryExists)) {
 
             // set the parametric Query
             statement.setString(1, projectTitle);
-            statement.setString(2, workPackageTitle);
-            statement.setString(3, taskTitle);
+            statement.setString(2, admin);
+            statement.setString(3, workPackageTitle);
+            statement.setString(4, taskTitle);
 
             // get the Project
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -74,7 +71,7 @@ public class TaskDAO {
 
     /**
      * Add a new Task.
-     * <br>This method adds a new Task into the DB.
+     * <br>This static method adds a new Task into the DB.
      *
      * @param projectTitle              Title of the Project referring to the Task.
      * @param workPackageTitle          Title of the Work-Package referring to the Task.
@@ -84,15 +81,16 @@ public class TaskDAO {
      *
      * @throws SQLException DB error
      */
-    public void addNew(String projectTitle, String workPackageTitle, String taskTitle, int taskStartingMonth, int taskEndingMonth) throws SQLException {
+    public static void addNew(String admin, String projectTitle, String workPackageTitle, String taskTitle, int taskStartingMonth, int taskEndingMonth) throws SQLException {
         // get the workPackageID and workPackageOrderNumber
         int workPackageID, workPackageOrderNumber;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryWorkPackageID)) {
             statement.setString(1, projectTitle);
-            statement.setString(2, workPackageTitle);
+            statement.setString(2, admin);
+            statement.setString(3, workPackageTitle);
             try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
+                if (!resultSet.next()) return;
                 workPackageID = resultSet.getInt("ID");
                 workPackageOrderNumber = resultSet.getInt("ORDERNUMBER");
             }

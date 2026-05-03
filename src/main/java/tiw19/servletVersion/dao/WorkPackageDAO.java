@@ -22,12 +22,12 @@ import java.util.ArrayList;
 public class WorkPackageDAO {
     private static final String queryExists =
             "SELECT count(*) " +
-            "FROM WORK_PACKAGES JOIN PROJECTS ON WORK_PACKAGES.projectID = PROJECTS.ID " +
-            "WHERE PROJECTS.title = ? AND WORK_PACKAGES.title = ?";
+            "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+            "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
     private static final String queryProjectID =
-            "SELECT id " +
+            "SELECT ID " +
             "FROM PROJECTS " +
-            "WHERE PROJECTS.title = ?";
+            "WHERE title = ? and admin = ?";
     private static final String queryWorkPackagesNumber =
             "SELECT count(*) " +
             "FROM WORK_PACKAGES " +
@@ -37,35 +37,33 @@ public class WorkPackageDAO {
             "(orderNumber, title, startingMonth, endingMonth, projectID) " +
             "VALUES (?, ?, ?, ?, ?)";
     private static final String queryAll =
-            "SELECT title, startingMonth, endingMonth, projectID " +
-            "FROM WORK_PACKAGES";
+            "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+            "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+            "WHERE P.admin = ?";
     private static final String queryTitle =
-            "SELECT WORK_PACKAGES.title, startingMonth, endingMonth, projectID " +
-            "FROM WORK_PACKAGES JOIN PROJECTS ON WORK_PACKAGES.projectID = PROJECTS.ID " +
-            "WHERE PROJECTS.title = ? AND WORK_PACKAGES.title = ?";
-
-    /**
-     * Constructor of the Work-Package DAO.
-     */
-    public WorkPackageDAO() {}
+            "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+            "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+            "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
 
     /**
      * Check if a Work-Package already exists.
-     * <br>This method checks if a Work-Package already exists, by query for the title.
+     * <br>This static method checks if a Work-Package already exists, by query for the title.
      *
-     * @param projectTitle Title of the Project referring to the Work-Package.
-     * @param workPackageTitle Title of the Work-Package to check.
+     * @param admin             Admin of teh Project referring to the Work-Package.
+     * @param projectTitle      Title of the Project referring to the Work-Package.
+     * @param workPackageTitle  Title of the Work-Package to check.
      *
      * @return True if the Work-Package already exists, false otherwise.
      * @throws SQLException DB error
      */
-    public boolean existsWorkPackage(String projectTitle, String workPackageTitle) throws SQLException {
+    public static boolean existsWorkPackage(String admin, String projectTitle, String workPackageTitle) throws SQLException {
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryExists)) {
 
             // set the parametric Query
             statement.setString(1, projectTitle);
-            statement.setString(2, workPackageTitle);
+            statement.setString(2, admin);
+            statement.setString(3, workPackageTitle);
 
             // get the Project
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -77,8 +75,9 @@ public class WorkPackageDAO {
 
     /**
      * Add a new Work-Package.
-     * <br>This method adds a new Work-Package into the DB.
+     * <br>This static method adds a new Work-Package into the DB.
      *
+     * @param admin                     Admin of the Project referring to the Work-Package.
      * @param projectTitle              Title of the Project referring to the Work-Package.
      * @param workPackageTitle          Title of the Work-Package.
      * @param workPackageStartingMonth  Starting month of the Work-Package.
@@ -86,12 +85,13 @@ public class WorkPackageDAO {
      *
      * @throws SQLException DB error
      */
-    public void addNew(String projectTitle, String workPackageTitle, int workPackageStartingMonth, int workPackageEndingMonth) throws SQLException {
+    public static void addNew(String admin, String projectTitle, String workPackageTitle, int workPackageStartingMonth, int workPackageEndingMonth) throws SQLException {
         // get the projectID
         int projectID;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryProjectID)) {
             statement.setString(1, projectTitle);
+            statement.setString(2, admin);
             try (ResultSet resultSet = statement.executeQuery()) {
                 resultSet.next();
                 projectID = resultSet.getInt("ID");
@@ -128,21 +128,27 @@ public class WorkPackageDAO {
     /**
      * Get all the Work-Packages.
      *
+     * @param admin Admin of the Projects (and Work-Packages).
+     *
      * @return All Work-Packages.
      * @throws SQLException DB error
      */
-    public List<WorkPackage> getAll() throws SQLException {
+    public static List<WorkPackage> getAll(String admin) throws SQLException {
         List<WorkPackage> workPackages = new ArrayList<>();
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryAll)) {
+
+            // set teh parametric query
+            statement.setString(1, admin);
+
+            // get the Work-Packages
             try (ResultSet resultSet = statement.executeQuery()) {
-                ProjectDAO projectDAO = new ProjectDAO();
                 while (resultSet.next()) {
                     workPackages.add(new WorkPackage(
                             resultSet.getString("TITLE"),
                             Integer.parseInt(resultSet.getString("STARTINGMONTH")),
                             Integer.parseInt(resultSet.getString("ENDINGMONTH")),
-                            projectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
+                            ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
                     ));
                 }
             }
@@ -152,33 +158,36 @@ public class WorkPackageDAO {
 
     /**
      * Get the Work-Package by its title.
-     * <br>This method gets a Work-Package only from its title (and the Project's one).
+     * <br>This static method gets a Work-Package only from its title (and the Project's one).
      *
+     * @param admin             Admin of teh Project.
      * @param projectTitle      Title of the Project
      * @param workPackageTitle  Title of the Work-Package
      *
      * @return Work-Packages corresponding to the title.
      * @throws SQLException DB error
      */
-    public WorkPackage getFromTitle(String projectTitle, String workPackageTitle) throws SQLException {
+    public static WorkPackage getFromTitle(String admin, String projectTitle, String workPackageTitle) throws SQLException {
+        WorkPackage workPackage;
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(queryTitle)) {
 
             // set the parametric query
             statement.setString(1, projectTitle);
-            statement.setString(2, workPackageTitle);
+            statement.setString(2, admin);
+            statement.setString(3, workPackageTitle);
 
             // get the Work-Package
             try (ResultSet resultSet = statement.executeQuery()) {
-                ProjectDAO projectDAO = new ProjectDAO();
                 resultSet.next();
-                return new WorkPackage(
+                workPackage = new WorkPackage(
                         resultSet.getString("TITLE"),
                         Integer.parseInt(resultSet.getString("STARTINGMONTH")),
                         Integer.parseInt(resultSet.getString("ENDINGMONTH")),
-                        projectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
+                        ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
                 );
             }
         }
+        return workPackage;
     }
 }

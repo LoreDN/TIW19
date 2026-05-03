@@ -71,8 +71,7 @@ public class CreateWorkPackageServlet extends HttpServlet {
             workPackageErrorMessage = "All fields are required!!!";
         } else {
             try {
-                ProjectDAO projectDAO = new ProjectDAO();
-                Project project = projectDAO.getFromTitle(projectTitle);
+                Project project = ProjectDAO.getFromTitle(((User) session.getAttribute("user")).getUsername(), projectTitle);
                 // Project
                 if (project == null) workPackageErrorMessage = "[Work-Package Error] : Project not found!!!";
                 // starting month
@@ -106,16 +105,15 @@ public class CreateWorkPackageServlet extends HttpServlet {
         // DB-side validation
         try {
             // check if Work-Package already exists
-            WorkPackageDAO workPackageDAO = new WorkPackageDAO();
-            if (workPackageDAO.existsWorkPackage(projectTitle, workPackageTitle)) {
+            if (WorkPackageDAO.existsWorkPackage(((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle)) {
                 reloadWebPage("[Work-Package Error] : Work-Package with title \"" + workPackageTitle + "\" already exists for the Project \"" + projectTitle + "\"!!!",
                         projectTitle, workPackageTitle, workPackageStartingMonth, workPackageEndingMonth,
                         request, response
                 );
             } else {
                 // create the new Work-Package
-                workPackageDAO.addNew(
-                        projectTitle, workPackageTitle,
+                WorkPackageDAO.addNew(
+                        ((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle,
                         Integer.parseInt(workPackageStartingMonth), Integer.parseInt(workPackageEndingMonth)
                 );
                 response.sendRedirect(request.getContextPath() + "/homeAdmin");
