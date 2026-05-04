@@ -48,6 +48,14 @@ public class WorkPackageDAO {
             "SELECT title, startingMonth, endingMonth, projectID " +
             "FROM WORK_PACKAGES " +
             "WHERE ID = ?";
+    private static final String queryManager =
+            "SELECT WP.ID " +
+            "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+            "WHERE P.title = ? AND P.manager = ?";
+    private static final String queryExistsTask =
+            "SELECT count(*) " +
+            "FROM TASKS " +
+            "WHERE workPackageID = ?";
 
     /**
      * Check if a Work-Package already exists.
@@ -225,5 +233,56 @@ public class WorkPackageDAO {
             }
         }
         return workPackage;
+    }
+
+    /**
+     * Get all Work-Packages ID for a manager.
+     *
+     * @param manager       Manager of the Project (and the Work-Packages).
+     * @param projectTitle  Title of the Project of reference.
+     *
+     * @return WorkPackage.ID for manager's Tasks.
+     * @throws SQLException DB error
+     */
+    public static List<Integer> getIDFromManager(String manager, String projectTitle) throws SQLException {
+        List<Integer> workPackagesID = new ArrayList<>();
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryManager)) {
+
+            // set the parametric query
+            statement.setString(1, projectTitle);
+            statement.setString(2, manager);
+
+            // get the Tasks ID
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    workPackagesID.add(Integer.parseInt(resultSet.getString("ID")));
+                }
+            }
+        }
+        return workPackagesID;
+    }
+
+    /**
+     * Check if exists at least one sub Task.
+     *
+     * @param workPackageID ID of the Work-Package to check.
+     *
+     * @return True if exists at least one sub Task, false otherwise.
+     * @throws SQLException DB error
+     */
+    public static boolean existsSubTasks(int workPackageID) throws SQLException {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryExistsTask)) {
+
+            // set the parametric query
+            statement.setInt(1, workPackageID);
+
+            // check the Tasks
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return Integer.parseInt(resultSet.getString("COUNT(*)")) > 0;
+            }
+        }
     }
 }

@@ -28,10 +28,14 @@ public class ProjectDAO {
             "INSERT INTO PROJECTS " +
             "(title, monthsNumber, admin, manager) " +
             "VALUES (?, ?, ?, ?)";
-    private static final String queryTitle =
+    private static final String queryTitleAdmin =
             "SELECT title, monthsNumber, status, admin " +
             "FROM PROJECTS " +
             "WHERE title = ? AND admin = ?";
+    private static final String queryTitleManager =
+            "SELECT title, monthsNumber, status, admin " +
+            "FROM PROJECTS " +
+            "WHERE title = ? AND manager = ?";
     private static final String queryID =
             "SELECT title, monthsNumber, status, admin " +
             "FROM PROJECTS " +
@@ -44,6 +48,10 @@ public class ProjectDAO {
             "SELECT title, monthsNumber, status, admin " +
             "FROM PROJECTS " +
             "WHERE status = 'CREATED' AND manager = ?";
+    private static final String updateAssign =
+            "UPDATE PROJECTS " +
+            "SET status = 'ASSIGNED' " +
+            "WHERE title = ? AND manager = ?";
 
     /**
      * Check if a Project already exists.
@@ -101,20 +109,21 @@ public class ProjectDAO {
      * Get a Project by its title.
      * <br>This static method gets a Project only from its title.
      *
-     * @param admin Admin of the Project.
-     * @param title Title of the Project.
+     * @param username  Admin/Manager of the Project.
+     * @param title     Title of the Project.
      *
      * @return Project corresponding to the title.
      * @throws SQLException DB error
      */
-    public static Project getFromTitle(String admin, String title) throws SQLException {
+    public static Project getFromTitle(String username, String title) throws SQLException {
         Project project = null;
+        String query = (UserDAO.getFromUsername(username).isAdmin()) ? queryTitleAdmin : queryTitleManager;
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryTitle)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setString(1, title);
-            statement.setString(2, admin);
+            statement.setString(2, username);
 
             // get the User
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -225,5 +234,51 @@ public class ProjectDAO {
             }
         }
         return projects;
+    }
+
+    /**
+     * Check if a Project can be assigned.
+     * <br>This static method check if Project is valid to be assigned.
+     *
+     * @param manager       Manager of the project.
+     * @param projectTitle  Title of the Project.
+     *
+     * @return true if a Project can be assigned, false otherwise.
+     * @throws SQLException DB error
+     */
+    public static boolean canBeAssigned(String manager, String projectTitle) throws SQLException {
+        // check Work-Packages
+        List<Integer> workPackagesID = WorkPackageDAO.getIDFromManager(manager, projectTitle);
+        for (Integer workPackageID : workPackagesID) {
+            if (!WorkPackageDAO.existsSubTasks(workPackageID)) return false;
+        }
+
+        // check Tasks
+        List<Integer> tasksID = TaskDAO.getIDFromManager(manager, projectTitle);
+        for (Integer taskID : tasksID) {
+            if (!TaskDAO.isFullyAssigned(taskID)) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Set Project status to ASSIGNED.
+     *
+     * @param manager       Manager of the Project.
+     * @param projectTitle  Title of the Project.
+     *
+     * @throws SQLException DB error
+     */
+    public static void assign(String manager, String projectTitle) throws SQLException {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(updateAssign)) {
+
+            // set the parametric query
+            statement.setString(1, projectTitle);
+            statement.setString(2, manager);
+
+            // update the DB
+            statement.executeUpdate();
+        }
     }
 }
