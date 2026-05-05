@@ -112,11 +112,18 @@ public class CreateWorkPackageServlet extends HttpServlet {
                 );
             } else {
                 // create the new Work-Package
-                WorkPackageDAO.addNew(
+                if (WorkPackageDAO.addNew(
                         ((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle,
                         Integer.parseInt(workPackageStartingMonth), Integer.parseInt(workPackageEndingMonth)
-                );
-                response.sendRedirect(request.getContextPath() + "/homeAdmin");
+                )) {
+                    response.sendRedirect(request.getContextPath() + "/homeAdmin");
+                } else {
+                    reloadWebPage("[DB Error] : Creation of Work-Package \"" + workPackageTitle + "\" for the Project \"" + projectTitle + "\" was not successfully!!! " +
+                                    "Check for all the constraints to be valid!!!",
+                            projectTitle, workPackageTitle, workPackageStartingMonth, workPackageEndingMonth,
+                            request, response
+                    );
+                }
             }
         } catch (SQLException exception) {
             reloadWebPage("[DB Error] : " + exception.getMessage(),

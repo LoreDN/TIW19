@@ -85,8 +85,7 @@ public class LoginServlet extends HttpServlet {
 
         // DB-side credentials check
         try {
-            UserDAO userDAO = new UserDAO();
-            User user = userDAO.checkCredentials(username, password);
+            User user = UserDAO.checkCredentials(username, password);
 
             if (user == null) {
                 reloadWebPage(

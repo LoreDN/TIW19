@@ -17,23 +17,6 @@ import java.sql.SQLException;
  * @since 1.0
  */
 public class UserDAO {
-    private static final String queryCredentials =
-            "SELECT name, surname, username, photo, role " +
-            "FROM USERS " +
-            "WHERE username = ? AND password = ?";
-    private static final String queryUsername =
-            "SELECT name, surname, username, photo, role " +
-            "FROM USERS " +
-            "WHERE username = ?";
-    private static final String queryID =
-            "SELECT ID " +
-            "FROM USERS " +
-            "WHERE username = ?";
-
-    /**
-     * Constructor of the User DAO.
-     */
-    public UserDAO() {}
 
     /**
      * Get a logged User.
@@ -45,29 +28,60 @@ public class UserDAO {
      * @return User corresponding to the couple (username,password)
      * @throws SQLException DB error
      */
-    public static User checkCredentials(String username, String password) throws SQLException {
-        User user = null;
+    public static synchronized User checkCredentials(String username, String password) throws SQLException {
+        String query = "SELECT name, surname, username, photo, role " +
+                "FROM USERS " +
+                "WHERE username = ? AND password = ?";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryCredentials)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setString(1, username);
             statement.setString(2, password);
 
             // get the logged User
-            try (ResultSet queryResult = statement.executeQuery()) {
-                if (queryResult.next()) {
-                    user = new User(
-                            queryResult.getString("NAME"),
-                            queryResult.getString("SURNAME"),
-                            queryResult.getString("USERNAME"),
-                            queryResult.getString("PHOTO"),
-                            queryResult.getString("ROLE")
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return new User(
+                            resultSet.getString("NAME"),
+                            resultSet.getString("SURNAME"),
+                            resultSet.getString("USERNAME"),
+                            resultSet.getString("PHOTO"),
+                            resultSet.getString("ROLE")
                     );
-                }
+                } else return null;
             }
         }
-        return user;
+    }
+
+    /**
+     * Get the ID of a User.
+     *
+     * @param username Username of the User.
+     *
+     * @return User.ID
+     * @throws SQLException DB error
+     */
+    public static synchronized int getID(String username) throws SQLException {
+        String query = "SELECT ID " +
+                "FROM USERS " +
+                "WHERE username = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setString(1, username);
+
+            // get the userID
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("ID");
+                else return -1;
+            }
+        }
     }
 
     /**
@@ -80,51 +94,27 @@ public class UserDAO {
      * @throws SQLException DB error
      */
     public static User getFromUsername(String username) throws SQLException {
-        User user = null;
+        String query = "SELECT name, surname, username, photo, role " +
+                "FROM USERS " +
+                "WHERE username = ?";
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryUsername)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setString(1, username);
 
             // get the User
-            try (ResultSet queryResult = statement.executeQuery()) {
-                if (queryResult.next()) {
-                    user = new User(
-                            queryResult.getString("NAME"),
-                            queryResult.getString("SURNAME"),
-                            queryResult.getString("USERNAME"),
-                            queryResult.getString("PHOTO"),
-                            queryResult.getString("ROLE")
-                    );
-                }
-            }
-        }
-        return user;
-    }
-
-    /**
-     * Get the ID of a User.
-     *
-     * @param username Username of the User.
-     *
-     * @return User.ID
-     * @throws SQLException DB error
-     */
-    public static int getID(String username) throws SQLException {
-        int userID;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryID)) {
-
-            // set the parametric query
-            statement.setString(1, username);
-
-            // get the userID
             try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                userID = resultSet.getInt("ID");
+                if (resultSet.next()) {
+                    return new User(
+                            resultSet.getString("NAME"),
+                            resultSet.getString("SURNAME"),
+                            resultSet.getString("USERNAME"),
+                            resultSet.getString("PHOTO"),
+                            resultSet.getString("ROLE")
+                    );
+                } else return null;
             }
         }
-        return userID;
     }
 }

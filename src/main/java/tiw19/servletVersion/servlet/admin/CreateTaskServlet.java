@@ -128,11 +128,18 @@ public class CreateTaskServlet extends HttpServlet {
                 );
             } else {
                 // create the new Task
-                TaskDAO.addNew(
+                if (TaskDAO.addNew(
                         ((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle, taskTitle,
                         Integer.parseInt(taskStartingMonth), Integer.parseInt(taskEndingMonth)
-                );
-                response.sendRedirect(request.getContextPath() + "/homeAdmin");
+                )) {
+                    response.sendRedirect(request.getContextPath() + "/homeAdmin");
+                } else {
+                    reloadWebPage("[DB Error] : Creation of Task \"" + taskTitle + "\" for the Work-Package \"" + workPackageTitle + "\" for the Project \"" + projectTitle + "\" was not successfully!!! " +
+                                    "Check for all the constraints to be valid!!!",
+                            taskWPValues, taskTitle, taskStartingMonth, taskEndingMonth,
+                            request, response
+                    );
+                }
             }
         } catch (SQLException exception) {
             reloadWebPage("[DB Error] : " + exception.getMessage(),

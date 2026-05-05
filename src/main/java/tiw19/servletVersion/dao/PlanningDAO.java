@@ -1,6 +1,7 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
+import tiw19.servletVersion.model.Task;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,14 +17,6 @@ import java.sql.SQLException;
  * @since 1.0
  */
 public class PlanningDAO {
-    private static final String queryExists =
-            "SELECT count(*) " +
-            "FROM PLANNING " +
-            "WHERE taskID = ? AND month = ?";
-    private static final String insertNew =
-            "INSERT INTO PLANNING " +
-            "(taskID, month, plannedHours)" +
-            "VALUES (?, ?, ?)";
 
     /**
      * Check if a Planning already exists.
@@ -36,18 +29,23 @@ public class PlanningDAO {
      *
      * @throws SQLException DB error
      */
-    public static boolean existsPlanning(int taskID, int month) throws SQLException {
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryExists)) {
+    public static synchronized boolean existsPlanning(int taskID, int month) throws SQLException {
+        String query = "SELECT count(*) " +
+                "FROM PLANNING " +
+                "WHERE taskID = ? AND month = ?";
 
-            // set the parametric Query
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
             statement.setInt(1, taskID);
             statement.setInt(2, month);
 
             // get the Planning
             try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                return resultSet.getInt("COUNT(*)") > 0;
+                if (resultSet.next()) return resultSet.getInt("COUNT(*)") > 0;
+                else return true;
             }
         }
     }
@@ -62,9 +60,14 @@ public class PlanningDAO {
      *
      * @throws SQLException DB error
      */
-    public static void addNew(int taskID, int month, int hours) throws SQLException {
+    public static synchronized void addNew(int taskID, int month, int hours) throws SQLException {
+        String query = "INSERT INTO PLANNING " +
+                "(taskID, month, plannedHours)" +
+                "VALUES (?, ?, ?)";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(insertNew)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setInt(1, taskID);
@@ -73,6 +76,38 @@ public class PlanningDAO {
 
             // update DB
             statement.executeUpdate();
+        }
+    }
+
+    /**
+     * Check if all Months of a Task are planned.
+     *
+     * @param taskID ID of the Task to check.
+     *
+     * @return True if all Months are planned, false otherwise.
+     * @throws SQLException DB error
+     */
+    public static synchronized boolean allMonthsPlanned(int taskID) throws SQLException {
+        String query = "SELECT count(*) " +
+                "FROM PLANNING " +
+                "WHERE taskID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // get the Task
+            Task task = TaskDAO.getFromID(taskID);
+            if (task == null) return false;
+
+            // set the parametric query
+            statement.setInt(1, taskID);
+
+            // check if all months are planned
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("COUNT(*)") == task.getEndingMonth() - task.getStartingMonth() + 1;
+                else return false;
+            }
         }
     }
 }

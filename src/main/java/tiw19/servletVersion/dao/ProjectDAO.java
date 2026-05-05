@@ -2,6 +2,7 @@ package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
 import tiw19.servletVersion.model.Project;
+import tiw19.servletVersion.model.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,61 +21,43 @@ import java.util.ArrayList;
  * @since 1.0
  */
 public class ProjectDAO {
-    private static final String queryExists =
-            "SELECT count(*) " +
-            "FROM PROJECTS " +
-            "WHERE title = ? AND admin = ?";
-    private static final String insertNew =
-            "INSERT INTO PROJECTS " +
-            "(title, monthsNumber, admin, manager) " +
-            "VALUES (?, ?, ?, ?)";
-    private static final String queryTitleAdmin =
-            "SELECT title, monthsNumber, status, admin " +
-            "FROM PROJECTS " +
-            "WHERE title = ? AND admin = ?";
-    private static final String queryTitleManager =
-            "SELECT title, monthsNumber, status, admin " +
-            "FROM PROJECTS " +
-            "WHERE title = ? AND manager = ?";
-    private static final String queryID =
-            "SELECT title, monthsNumber, status, admin " +
-            "FROM PROJECTS " +
-            "WHERE ID = ?";
-    private static final String queryCreated =
-            "SELECT title, monthsNumber, status, admin " +
-            "FROM PROJECTS " +
-            "WHERE status = 'CREATED' AND admin = ?";
-    private static final String queryToBeAssigned =
-            "SELECT title, monthsNumber, status, admin " +
-            "FROM PROJECTS " +
-            "WHERE status = 'CREATED' AND manager = ?";
-    private static final String updateAssign =
-            "UPDATE PROJECTS " +
-            "SET status = 'ASSIGNED' " +
-            "WHERE title = ? AND manager = ?";
 
     /**
      * Check if a Project already exists.
      * <br>This static method checks if a Project already exists, by query for the title.
      *
-     * @param admin         Admin of the Project to check.
+     * @param username      Admin/Manager of the Project to check.
      * @param projectTitle  Title of the Project to check.
      *
      * @return True if the Project already exists, false otherwise.
      * @throws SQLException DB error
      */
-    public static boolean existProject(String admin, String projectTitle) throws SQLException {
+    public static synchronized boolean existProject(String username, String projectTitle) throws SQLException {
+        String query;
+        User user = UserDAO.getFromUsername(username);
+        if (user == null) return true;
+        else if (user.isAdmin()) {
+            query = "SELECT count(*) " +
+                    "FROM PROJECTS " +
+                    "WHERE title = ? AND admin = ?";
+        } else if (user.isManager()) {
+            query = "SELECT count(*) " +
+                    "FROM PROJECTS " +
+                    "WHERE title = ? AND manager = ?";
+        } else return true;
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryExists)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric Query
             statement.setString(1, projectTitle);
-            statement.setString(2, admin);
+            statement.setString(2, username);
 
             // get the Project
             try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                return resultSet.getInt("COUNT(*)") > 0;
+                if (resultSet.next()) return resultSet.getInt("COUNT(*)") > 0;
+                else return true;
             }
         }
     }
@@ -90,9 +73,14 @@ public class ProjectDAO {
      *
      * @throws SQLException     DB error
      */
-    public static void addNew(String projectTitle, int projectDuration, String projectAdmin, String projectManager) throws SQLException {
+    public static synchronized void addNew(String projectTitle, int projectDuration, String projectAdmin, String projectManager) throws SQLException {
+        String query = "INSERT INTO PROJECTS " +
+                "(title, monthsNumber, admin, manager) " +
+                "VALUES (?, ?, ?, ?)";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(insertNew)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setString(1, projectTitle);
@@ -106,6 +94,45 @@ public class ProjectDAO {
     }
 
     /**
+     * Get Project ID from its title.
+     *
+     * @param username      Admin/Manager of the Project.
+     * @param projectTitle  Title of the Project.
+     *
+     * @return Project.ID, -1 if it does not exist.
+     * @throws SQLException DB error
+     */
+    public static synchronized int getID(String username, String projectTitle) throws SQLException {
+        String query;
+        User user = UserDAO.getFromUsername(username);
+        if (user == null) return -1;
+        else if (user.isAdmin()) {
+            query = "SELECT ID " +
+                    "FROM PROJECTS " +
+                    "WHERE title = ? and admin = ?";
+        } else if (user.isManager()) {
+            query = "SELECT ID " +
+                    "FROM PROJECTS " +
+                    "WHERE title = ? and manager = ?";
+        } else return -1;
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setString(1, projectTitle);
+            statement.setString(2, username);
+
+            // get the Tasks ID
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("ID");
+                else return -1;
+            }
+        }
+    }
+
+    /**
      * Get a Project by its title.
      * <br>This static method gets a Project only from its title.
      *
@@ -115,9 +142,21 @@ public class ProjectDAO {
      * @return Project corresponding to the title.
      * @throws SQLException DB error
      */
-    public static Project getFromTitle(String username, String title) throws SQLException {
-        Project project = null;
-        String query = (UserDAO.getFromUsername(username).isAdmin()) ? queryTitleAdmin : queryTitleManager;
+    public static synchronized Project getFromTitle(String username, String title) throws SQLException {
+        String query;
+        User user = UserDAO.getFromUsername(username);
+        if (user == null) return null;
+        else if (user.isAdmin()) {
+            query = "SELECT title, monthsNumber, status, admin " +
+                    "FROM PROJECTS " +
+                    "WHERE title = ? AND admin = ?";
+        } else if (user.isManager()) {
+            query = "SELECT title, monthsNumber, status, admin " +
+                    "FROM PROJECTS " +
+                    "WHERE title = ? AND manager = ?";
+        } else return null;
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
@@ -128,16 +167,15 @@ public class ProjectDAO {
             // get the User
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    project = new Project(
+                    return new Project(
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
+                            resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
                             resultSet.getString("STATUS")
                     );
-                }
+                } else return null;
             }
         }
-        return project;
     }
 
     /**
@@ -149,10 +187,14 @@ public class ProjectDAO {
      * @return Project corresponding to the ID.
      * @throws SQLException DB error
      */
-    public static Project getFromID(int ID) throws SQLException {
-        Project project = null;
+    public static synchronized Project getFromID(int ID) throws SQLException {
+        String query = "SELECT title, monthsNumber, status, admin " +
+                "FROM PROJECTS " +
+                "WHERE ID = ?";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryID)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setInt(1, ID);
@@ -160,16 +202,15 @@ public class ProjectDAO {
             // get the User
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    project = new Project(
+                    return new Project(
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
+                            resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
                             resultSet.getString("STATUS")
                     );
-                }
+                } else return null;
             }
         }
-        return project;
     }
 
     /**
@@ -181,10 +222,18 @@ public class ProjectDAO {
      * @return Projects with Project.status == CREATED.
      * @throws SQLException DB error
      */
-    public static List<Project> getCreatedProjects(String admin) throws SQLException {
+    public static synchronized List<Project> getCreatedProjects(String admin) throws SQLException {
         List<Project> projects = new ArrayList<>();
+        User user = UserDAO.getFromUsername(admin);
+        if (user == null) return projects;
+        if (!user.isAdmin()) return projects;
+        String query = "SELECT title, monthsNumber, status, admin " +
+                "FROM PROJECTS " +
+                "WHERE status = 'CREATED' AND admin = ?";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryCreated)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setString(1, admin);
@@ -194,7 +243,7 @@ public class ProjectDAO {
                 while (resultSet.next()) {
                     projects.add(new Project(
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
+                            resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
                             resultSet.getString("STATUS")
                     ));
@@ -213,10 +262,18 @@ public class ProjectDAO {
      * @return Projects with Project.status == CREATED.
      * @throws SQLException DB error
      */
-    public static List<Project> getToBeAssignedProjects(String manager) throws SQLException {
+    public static synchronized List<Project> getToBeAssignedProjects(String manager) throws SQLException {
         List<Project> projects = new ArrayList<>();
+        User user = UserDAO.getFromUsername(manager);
+        if (user == null) return projects;
+        if (!user.isManager()) return projects;
+        String query = "SELECT title, monthsNumber, status, admin " +
+                "FROM PROJECTS " +
+                "WHERE status = 'CREATED' AND manager = ?";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryToBeAssigned)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setString(1, manager);
@@ -226,7 +283,7 @@ public class ProjectDAO {
                 while (resultSet.next()) {
                     projects.add(new Project(
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
+                            resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
                             resultSet.getString("STATUS")
                     ));
@@ -246,15 +303,18 @@ public class ProjectDAO {
      * @return true if a Project can be assigned, false otherwise.
      * @throws SQLException DB error
      */
-    public static boolean canBeAssigned(String manager, String projectTitle) throws SQLException {
+    public static synchronized boolean canBeAssigned(String manager, String projectTitle) throws SQLException {
+        User user = UserDAO.getFromUsername(manager);
+        if (user == null || !user.isManager()) return false;
+
         // check Work-Packages
-        List<Integer> workPackagesID = WorkPackageDAO.getIDFromManager(manager, projectTitle);
+        List<Integer> workPackagesID = WorkPackageDAO.getIDs(manager, projectTitle);
         for (Integer workPackageID : workPackagesID) {
-            if (!WorkPackageDAO.existsSubTasks(workPackageID)) return false;
+            if (!WorkPackageDAO.existSubTasks(workPackageID)) return false;
         }
 
         // check Tasks
-        List<Integer> tasksID = TaskDAO.getIDFromManager(manager, projectTitle);
+        List<Integer> tasksID = TaskDAO.getIDs(manager, projectTitle);
         for (Integer taskID : tasksID) {
             if (!TaskDAO.isFullyAssigned(taskID)) return false;
         }
@@ -267,9 +327,17 @@ public class ProjectDAO {
      * @param manager       Manager of the Project.
      * @param projectTitle  Title of the Project.
      *
+     * @return True if assignment was successfully, false otherwise.
      * @throws SQLException DB error
      */
-    public static void assign(String manager, String projectTitle) throws SQLException {
+    public static synchronized boolean setToAssigned(String manager, String projectTitle) throws SQLException {
+        User user = UserDAO.getFromUsername(manager);
+        if (user == null || !user.isManager()) return false;
+        String updateAssign = "UPDATE PROJECTS " +
+                "SET status = 'ASSIGNED' " +
+                "WHERE title = ? AND manager = ?";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(updateAssign)) {
 
@@ -280,5 +348,6 @@ public class ProjectDAO {
             // update the DB
             statement.executeUpdate();
         }
+        return true;
     }
 }

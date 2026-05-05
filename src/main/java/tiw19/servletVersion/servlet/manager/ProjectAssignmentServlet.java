@@ -92,8 +92,15 @@ public class ProjectAssignmentServlet extends HttpServlet {
                 );
             } else {
                 // assign the Project
-                ProjectDAO.assign(((User) session.getAttribute("user")).getUsername(), projectTitle);
-                response.sendRedirect(request.getContextPath() + "/homeManager");
+                if (ProjectDAO.setToAssigned(((User) session.getAttribute("user")).getUsername(), projectTitle)) {
+                    response.sendRedirect(request.getContextPath() + "/homeManager");
+                } else {
+                    reloadWebPage("[DB Error Error] : Assignment of Project \"" + projectTitle + "\" was not successfully!!! " +
+                                    "Check for all the constraints to be valid!!!",
+                            projectTitle,
+                            request, response
+                    );
+                }
             }
         } catch (SQLException exception) {
             reloadWebPage("[DB Error] : " + exception.getMessage(),

@@ -37,7 +37,8 @@ CREATE TABLE PROJECTS(
 
     # constraints
     CONSTRAINT pk_PROJECTS PRIMARY KEY (ID),
-    CONSTRAINT uq_PROJECT_title UNIQUE (admin, title),
+    CONSTRAINT uq_PROJECT_title_ADMIN UNIQUE (admin, title),
+    CONSTRAINT uq_PROJECT_title_MANAGER UNIQUE (manager, title),
     CONSTRAINT fk_PROJECTS_ADMIN FOREIGN KEY (admin) REFERENCES USERS(username),
     CONSTRAINT fk_PROJECTS_MANAGER FOREIGN KEY (manager) REFERENCES USERS(username)
 );
@@ -94,7 +95,7 @@ CREATE TABLE PLANNING(
     # attributes
     taskID          int NOT NULL,
     month           int NOT NULL CHECK ( month >= 1 ),
-    plannedHours    int NOT NULL DEFAULT 0 CHECK ( plannedHours >= 1 ),
+    plannedHours    int NOT NULL DEFAULT 0 CHECK ( plannedHours >= 0 ),
     workedHours     int NOT NULL DEFAULT 0 check ( workedHours >= 0 ),
 
     # constraints

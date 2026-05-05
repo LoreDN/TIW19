@@ -1,6 +1,7 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
+import tiw19.servletVersion.model.User;
 import tiw19.servletVersion.model.WorkPackage;
 
 import java.sql.Connection;
@@ -20,42 +21,6 @@ import java.util.ArrayList;
  * @since 1.0
  */
 public class WorkPackageDAO {
-    private static final String queryExists =
-            "SELECT count(*) " +
-            "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-            "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
-    private static final String queryProjectID =
-            "SELECT ID " +
-            "FROM PROJECTS " +
-            "WHERE title = ? and admin = ?";
-    private static final String queryWorkPackagesNumber =
-            "SELECT count(*) " +
-            "FROM WORK_PACKAGES " +
-            "WHERE projectID = ?";
-    private static final String insertNew =
-            "INSERT INTO WORK_PACKAGES " +
-            "(orderNumber, title, startingMonth, endingMonth, projectID) " +
-            "VALUES (?, ?, ?, ?, ?)";
-    private static final String queryAll =
-            "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
-            "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-            "WHERE P.admin = ?";
-    private static final String queryTitle =
-            "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
-            "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-            "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
-    private static final String queryID =
-            "SELECT title, startingMonth, endingMonth, projectID " +
-            "FROM WORK_PACKAGES " +
-            "WHERE ID = ?";
-    private static final String queryManager =
-            "SELECT WP.ID " +
-            "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-            "WHERE P.title = ? AND P.manager = ?";
-    private static final String queryExistsTask =
-            "SELECT count(*) " +
-            "FROM TASKS " +
-            "WHERE workPackageID = ?";
 
     /**
      * Check if a Work-Package already exists.
@@ -68,9 +33,16 @@ public class WorkPackageDAO {
      * @return True if the Work-Package already exists, false otherwise.
      * @throws SQLException DB error
      */
-    public static boolean existsWorkPackage(String admin, String projectTitle, String workPackageTitle) throws SQLException {
+    public static synchronized boolean existsWorkPackage(String admin, String projectTitle, String workPackageTitle) throws SQLException {
+        User user = UserDAO.getFromUsername(admin);
+        if (user == null || !user.isAdmin()) return true;
+        String query = "SELECT count(*) " +
+                "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryExists)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric Query
             statement.setString(1, projectTitle);
@@ -79,8 +51,8 @@ public class WorkPackageDAO {
 
             // get the Project
             try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                return resultSet.getInt("COUNT(*)") > 0;
+                if (resultSet.next()) return resultSet.getInt("COUNT(*)") > 0;
+                else return true;
             }
         }
     }
@@ -95,38 +67,26 @@ public class WorkPackageDAO {
      * @param workPackageStartingMonth  Starting month of the Work-Package.
      * @param workPackageEndingMonth    Ending month of the Work-Package.
      *
+     * @return True if the Work-Package addition is successfully, false otherwise.
      * @throws SQLException DB error
      */
-    public static void addNew(String admin, String projectTitle, String workPackageTitle, int workPackageStartingMonth, int workPackageEndingMonth) throws SQLException {
-        // get the projectID
-        int projectID;
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryProjectID)) {
-            statement.setString(1, projectTitle);
-            statement.setString(2, admin);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                projectID = resultSet.getInt("ID");
-            }
-        }
+    public static synchronized boolean addNew(String admin, String projectTitle, String workPackageTitle, int workPackageStartingMonth, int workPackageEndingMonth) throws SQLException {
+        User user = UserDAO.getFromUsername(admin);
+        if (user == null || !user.isAdmin()) return false;
+        String query = "INSERT INTO WORK_PACKAGES " +
+                "(orderNumber, title, startingMonth, endingMonth, projectID) " +
+                "VALUES (?, ?, ?, ?, ?)";
 
-        // get the number of Work-Packages
-        int workPackagesNumber;
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryWorkPackagesNumber)) {
-            statement.setInt(1, projectID);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                workPackagesNumber = resultSet.getInt("COUNT(*)");
-            }
-        }
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
-        // add new Work-Package
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(insertNew)) {
+            // get Project ID
+            int projectID = ProjectDAO.getID(admin, projectTitle);
+            if (projectID == -1) return false;
 
             // set the parametric query
-            statement.setInt(1, workPackagesNumber + 1);
+            statement.setInt(1, getNumber(projectID) + 1);
             statement.setString(2, workPackageTitle);
             statement.setInt(3, workPackageStartingMonth);
             statement.setInt(4, workPackageEndingMonth);
@@ -135,23 +95,147 @@ public class WorkPackageDAO {
             // update DB
             statement.executeUpdate();
         }
+        return true;
+    }
+
+    /**
+     * Get the number of Work-Packages for a reference Project.
+     *
+     * @param projectID ID of the Project of reference.
+     *
+     * @return Number of Work-Packages for the reference Project.
+     * @throws SQLException DB error
+     */
+    public static synchronized int getNumber(int projectID) throws SQLException {
+        String query = "SELECT count(*) " +
+                "FROM WORK_PACKAGES " +
+                "WHERE projectID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, projectID);
+
+            // get the number of Work-Packages
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("COUNT(*)");
+                else return 0;
+            }
+        }
+    }
+
+    /**
+     * Get a Work-Packages ID from its title.
+     *
+     * @param username          Admin/Manager of the Project (and the Work-Packages).
+     * @param workPackageTitle  Title of the Work-Package.
+     *
+     * @return WorkPackage.ID, -1 if it does not exist.
+     * @throws SQLException DB error
+     */
+    public static synchronized int getID(String username, String workPackageTitle) throws SQLException {
+        String query;
+        User user = UserDAO.getFromUsername(username);
+        if (user == null) return -1;
+        if (user.isAdmin()) {
+            query = "SELECT WP.ID " +
+                    "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.admin = ? AND WP.title = ?";
+        } else if (user.isManager()) {
+            query = "SELECT WP.ID " +
+                    "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.manager = ? AND WP.title = ?";
+        } else return -1;
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setString(1, username);
+            statement.setString(2, workPackageTitle);
+
+            // get the Tasks ID
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("ID");
+                else return -1;
+            }
+        }
+    }
+
+    /**
+     * Get all Work-Packages ID for a Project.
+     *
+     * @param username      Admin/Manager of the Project (and the Work-Packages).
+     * @param projectTitle  Title of the Project of reference.
+     *
+     * @return WorkPackage.ID for a Project.
+     * @throws SQLException DB error
+     */
+    public static synchronized List<Integer> getIDs(String username, String projectTitle) throws SQLException {
+        List<Integer> workPackagesID = new ArrayList<>();
+        String query;
+        User user = UserDAO.getFromUsername(username);
+        if (user == null) return workPackagesID;
+        if (user.isAdmin()) {
+            query = "SELECT WP.ID " +
+                    "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.title = ? AND P.admin = ?";
+        } else if (user.isManager()) {
+            query = "SELECT WP.ID " +
+                    "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.title = ? AND P.manager = ?";
+        } else return workPackagesID;
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setString(1, projectTitle);
+            statement.setString(2, username);
+
+            // get the Tasks ID
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    workPackagesID.add(resultSet.getInt("ID"));
+                }
+            }
+        }
+        return workPackagesID;
     }
 
     /**
      * Get all the Work-Packages.
      *
-     * @param admin Admin of the Projects (and Work-Packages).
+     * @param username Admin/Manager of the Projects (and Work-Packages).
      *
      * @return All Work-Packages.
      * @throws SQLException DB error
      */
-    public static List<WorkPackage> getAll(String admin) throws SQLException {
+    public static synchronized List<WorkPackage> getAll(String username) throws SQLException {
         List<WorkPackage> workPackages = new ArrayList<>();
+        String query;
+        User user = UserDAO.getFromUsername(username);
+        if (user == null) return workPackages;
+        if (user.isAdmin()) {
+            query = "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+                    "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.admin = ?";
+        } else if (user.isManager()) {
+            query = "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+                    "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.manager = ?";
+        } else return workPackages;
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryAll)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
-            statement.setString(1, admin);
+            statement.setString(1, username);
 
             // get the Work-Packages
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -160,7 +244,7 @@ public class WorkPackageDAO {
                             resultSet.getString("TITLE"),
                             Integer.parseInt(resultSet.getString("STARTINGMONTH")),
                             Integer.parseInt(resultSet.getString("ENDINGMONTH")),
-                            ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
+                            ProjectDAO.getFromID(resultSet.getInt("PROJECTID"))
                     ));
                 }
             }
@@ -172,35 +256,48 @@ public class WorkPackageDAO {
      * Get the Work-Package by its title.
      * <br>This static method gets a Work-Package only from its title (and the Project's one).
      *
-     * @param admin             Admin of the Project.
+     * @param username          Admin/Manager of the Project.
      * @param projectTitle      Title of the Project.
      * @param workPackageTitle  Title of the Work-Package.
      *
      * @return Work-Packages corresponding to the title.
      * @throws SQLException DB error
      */
-    public static WorkPackage getFromTitle(String admin, String projectTitle, String workPackageTitle) throws SQLException {
-        WorkPackage workPackage;
+    public static synchronized WorkPackage getFromTitle(String username, String projectTitle, String workPackageTitle) throws SQLException {
+        String query;
+        User user = UserDAO.getFromUsername(username);
+        if (user == null) return null;
+        if (user.isAdmin()) {
+            query = "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+                    "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
+        } else if (user.isManager()) {
+            query = "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+                    "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.title = ? AND P.manager = ? AND WP.title = ?";
+        } else return null;
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryTitle)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setString(1, projectTitle);
-            statement.setString(2, admin);
+            statement.setString(2, username);
             statement.setString(3, workPackageTitle);
 
             // get the Work-Package
             try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                workPackage = new WorkPackage(
-                        resultSet.getString("TITLE"),
-                        Integer.parseInt(resultSet.getString("STARTINGMONTH")),
-                        Integer.parseInt(resultSet.getString("ENDINGMONTH")),
-                        ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
-                );
+                if (resultSet.next()) {
+                    return new WorkPackage(
+                            resultSet.getString("TITLE"),
+                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
+                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                            ProjectDAO.getFromID(resultSet.getInt("PROJECTID"))
+                    );
+                } else return null;
             }
         }
-        return workPackage;
     }
 
     /**
@@ -212,10 +309,14 @@ public class WorkPackageDAO {
      * @return Work-Package corresponding to the ID.
      * @throws SQLException DB error
      */
-    public static WorkPackage getFromID(int ID) throws SQLException {
-        WorkPackage workPackage = null;
+    public static synchronized WorkPackage getFromID(int ID) throws SQLException {
+        String query = "SELECT title, startingMonth, endingMonth, projectID " +
+                "FROM WORK_PACKAGES " +
+                "WHERE ID = ?";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryID)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setInt(1, ID);
@@ -223,44 +324,15 @@ public class WorkPackageDAO {
             // get the User
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    workPackage = new WorkPackage(
+                    return new WorkPackage(
                             resultSet.getString("TITLE"),
                             Integer.parseInt(resultSet.getString("STARTINGMONTH")),
                             Integer.parseInt(resultSet.getString("ENDINGMONTH")),
-                            ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID")))
+                            ProjectDAO.getFromID(resultSet.getInt("PROJECTID"))
                     );
-                }
+                } else return null;
             }
         }
-        return workPackage;
-    }
-
-    /**
-     * Get all Work-Packages ID for a manager.
-     *
-     * @param manager       Manager of the Project (and the Work-Packages).
-     * @param projectTitle  Title of the Project of reference.
-     *
-     * @return WorkPackage.ID for manager's Tasks.
-     * @throws SQLException DB error
-     */
-    public static List<Integer> getIDFromManager(String manager, String projectTitle) throws SQLException {
-        List<Integer> workPackagesID = new ArrayList<>();
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryManager)) {
-
-            // set the parametric query
-            statement.setString(1, projectTitle);
-            statement.setString(2, manager);
-
-            // get the Tasks ID
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    workPackagesID.add(Integer.parseInt(resultSet.getString("ID")));
-                }
-            }
-        }
-        return workPackagesID;
     }
 
     /**
@@ -271,17 +343,22 @@ public class WorkPackageDAO {
      * @return True if exists at least one sub Task, false otherwise.
      * @throws SQLException DB error
      */
-    public static boolean existsSubTasks(int workPackageID) throws SQLException {
+    public static synchronized boolean existSubTasks(int workPackageID) throws SQLException {
+        String query = "SELECT count(*) " +
+                "FROM TASKS " +
+                "WHERE workPackageID = ?";
+
+        // connect to the DB
         try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryExistsTask)) {
+             PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
             statement.setInt(1, workPackageID);
 
             // check the Tasks
             try (ResultSet resultSet = statement.executeQuery()) {
-                resultSet.next();
-                return Integer.parseInt(resultSet.getString("COUNT(*)")) > 0;
+                if (resultSet.next()) return resultSet.getInt("COUNT(*)") > 0;
+                return true;
             }
         }
     }
