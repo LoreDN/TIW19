@@ -93,6 +93,7 @@ public class ProjectAssignmentServlet extends HttpServlet {
             } else {
                 // assign the Project
                 if (ProjectDAO.setToAssigned(((User) session.getAttribute("user")).getUsername(), projectTitle)) {
+                    session.setAttribute("assignmentSuccessMessage", "[Assignment Success] : Project has been assign successfully!!!");
                     response.sendRedirect(request.getContextPath() + "/homeManager");
                 } else {
                     reloadWebPage("[DB Error Error] : Assignment of Project \"" + projectTitle + "\" was not successfully!!! " +

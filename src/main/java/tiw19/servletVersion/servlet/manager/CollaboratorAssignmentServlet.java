@@ -94,6 +94,8 @@ public class CollaboratorAssignmentServlet extends HttpServlet {
                     collaboratorErrorMessage = "[Collaborator Error] : Collaborator not found!!!";
                 else if (!collaboratorUser.isCollaborator())
                     collaboratorErrorMessage = "[Collaborator Error] : Collaborator must have the role COLLABORATOR!!!";
+                else if (collaborator.equals(((User) session.getAttribute("user")).getUsername()))
+                    collaboratorErrorMessage = "[Collaborator Error] : Manager cannot be assigned as a Collaborator of its own Project!!!";
                 // month
                 else if (Integer.parseInt(collaboratorMonth) < 1)
                     collaboratorErrorMessage = "[Collaborator Error] : Month must be greater than 1!!!";
@@ -129,6 +131,7 @@ public class CollaboratorAssignmentServlet extends HttpServlet {
             } else {
                 // assign Collaborator to (Task, Month)
                 CollaboratorDAO.newAssignment(taskID, Integer.parseInt(collaboratorMonth), collaborator);
+                session.setAttribute("collaboratorSuccessMessage", "[Collaborator Success] : Collaborator has been assigned successfully!!!");
                 response.sendRedirect(request.getContextPath() + "/homeManager");
             }
         } catch (SQLException exception) {

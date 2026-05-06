@@ -3,6 +3,7 @@ package tiw19.servletVersion.dao;
 import tiw19.servletVersion.db.DBConnection;
 import tiw19.servletVersion.model.Project;
 import tiw19.servletVersion.model.User;
+import tiw19.servletVersion.model.WorkPackage;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -307,10 +308,22 @@ public class ProjectDAO {
         User user = UserDAO.getFromUsername(manager);
         if (user == null || !user.isManager()) return false;
 
+        // check Project
+        int projectID = getID(manager, projectTitle);
+        Project project = getFromID(projectID);
+        if (project == null) return false;
+        for (int month = 1; month <= project.getMonthsNumber(); month++) {
+            if (!existsSubWorkPackages(projectID, month)) return false;
+        }
+
         // check Work-Packages
         List<Integer> workPackagesID = WorkPackageDAO.getIDs(manager, projectTitle);
         for (Integer workPackageID : workPackagesID) {
-            if (!WorkPackageDAO.existSubTasks(workPackageID)) return false;
+            WorkPackage workPackage = WorkPackageDAO.getFromID(workPackageID);
+            if (workPackage == null) return false;
+            for (int month = workPackage.getStartingMonth(); month <= workPackage.getEndingMonth(); month++) {
+                if (!WorkPackageDAO.existsSubTasks(workPackageID, month)) return false;
+            }
         }
 
         // check Tasks
@@ -319,6 +332,37 @@ public class ProjectDAO {
             if (!TaskDAO.isFullyAssigned(taskID)) return false;
         }
         return true;
+    }
+
+    /**
+     * Check if at least one sub Work-Package exists for the Month.
+     *
+     * @param projectID ID of the Project to check.
+     * @param month     Month to check.
+     *
+     * @return True if at least one Work-Package exists, false otherwise.
+     * @throws SQLException DB error
+     */
+    public static synchronized boolean existsSubWorkPackages(int projectID, int month) throws SQLException {
+        String query = "SELECT count(*) " +
+                "FROM PROJECTS AS P " +
+                "JOIN WORK_PACKAGES AS WP ON P.ID = WP.projectID " +
+                "WHERE P.ID = ? AND ? BETWEEN WP.startingMonth AND WP.endingMonth";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, projectID);
+            statement.setInt(2, month);
+
+            // check the Work-Package
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("COUNT(*)") > 0;
+                return false;
+            }
+        }
     }
 
     /**

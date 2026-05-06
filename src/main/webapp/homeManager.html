@@ -12,6 +12,7 @@
     <!-- Task-Hours Assignment form -->
     <h2>Assign the amount of hours planned for one couple (Task, Month)</h2>
     <p th:if="${hoursErrorMessage}" th:text="${hoursErrorMessage}" style="color:red;"></p>
+    <p th:if="${hoursSuccessMessage}" th:text="${hoursSuccessMessage}" style="color:green;"></p>
     <form th:action="@{/homeManager/hoursAssignment}" method="post">
         <!-- Task reference -->
         <label for="HoursTask">Reference Task title:</label>
@@ -36,6 +37,7 @@
     <!-- Collaborators Assignment form -->
     <h2>Assign a Collaborator to a Task</h2>
     <p th:if="${collaboratorErrorMessage}" th:text="${collaboratorErrorMessage}" style="color:red;"></p>
+    <p th:if="${collaboratorSuccessMessage}" th:text="${collaboratorSuccessMessage}" style="color:green;"></p>
     <form th:action="@{/homeManager/collaboratorAssignment}" method="post">
         <!-- Task reference -->
         <label for="TaskCollaborators">Reference Task title:</label>
@@ -60,6 +62,7 @@
     <!-- Project Assignment form -->
     <h2>Set a Project to the status ASSIGNED</h2>
     <p th:if="${assignmentErrorMessage}" th:text="${assignmentErrorMessage}" style="color:red;"></p>
+    <p th:if="${assignmentSuccessMessage}" th:text="${assignmentSuccessMessage}" style="color:green;"></p>
     <form th:action="@{/homeManager/projectAssignment}" method="post">
         <!-- Project selection -->
         <label for="Project">Project title:</label>

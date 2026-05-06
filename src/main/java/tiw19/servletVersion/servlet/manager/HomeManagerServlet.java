@@ -34,9 +34,9 @@ import java.util.List;
 @WebServlet("/homeManager")
 public class HomeManagerServlet extends HttpServlet {
     private static final String[] variables = {
-            "hoursErrorMessage", "hoursTaskTitles", "plannedMonth", "plannedHours",
-            "collaboratorErrorMessage", "collaboratorTaskTitles", "collaborator", "collaboratorMonth",
-            "assignmentErrorMessage", "projectTitle"
+            "hoursErrorMessage", "hoursSuccessMessage", "hoursTaskTitles", "plannedMonth", "plannedHours",
+            "collaboratorErrorMessage", "collaboratorSuccessMessage", "collaboratorTaskTitles", "collaborator", "collaboratorMonth",
+            "assignmentErrorMessage", "assignmentSuccessMessage", "projectTitle"
     };
 
     /**
@@ -75,7 +75,7 @@ public class HomeManagerServlet extends HttpServlet {
 
         // load Tasks
         try {
-            List<Task> tasks = TaskDAO.getAll(((User) session.getAttribute("user")).getUsername());
+            List<Task> tasks = TaskDAO.getAllToBeAssigned(((User) session.getAttribute("user")).getUsername());
             context.setVariable("tasks", tasks);
         } catch (SQLException exception) {
             String errorMessage = "[DB Error] : Error while getting Tasks from DB!!!";

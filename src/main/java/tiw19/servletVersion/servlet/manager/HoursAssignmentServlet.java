@@ -125,6 +125,7 @@ public class HoursAssignmentServlet extends HttpServlet {
             } else {
                 // create the new Planning
                 PlanningDAO.addNew(taskID, Integer.parseInt(plannedMonth), Integer.parseInt(plannedHours));
+                session.setAttribute("hoursSuccessMessage", "[Hours Success] : Planning has been added successfully!!!");
                 response.sendRedirect(request.getContextPath() + "/homeManager");
             }
         } catch (SQLException exception) {

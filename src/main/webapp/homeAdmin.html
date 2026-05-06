@@ -12,6 +12,7 @@
     <!-- Project Creation form -->
     <h2>Create a new Project</h2>
     <p th:if="${projectErrorMessage}" th:text="${projectErrorMessage}" style="color:red;"></p>
+    <p th:if="${projectSuccessMessage}" th:text="${projectSuccessMessage}" style="color:green;"></p>
     <form th:action="@{/homeAdmin/createProject}" method="post">
         <label for="ProjectTitle">Title</label>
         <input type="text" id="ProjectTitle" name="title" th:value="${projectTitle}" required /><br/>
@@ -28,6 +29,7 @@
     <!-- WorkPackage Creation form -->
     <h2>Create a new Work-Package for an existing Project</h2>
     <p th:if="${workPackageErrorMessage}" th:text="${workPackageErrorMessage}" style="color:red;"></p>
+    <p th:if="${workPackageSuccessMessage}" th:text="${workPackageSuccessMessage}" style="color:green;"></p>
     <form th:action="@{/homeAdmin/createWorkPackage}" method="post">
         <!-- Project reference -->
         <label for="WorkPackageProject">Reference Project title:</label>
@@ -55,6 +57,7 @@
     <!-- Task Creation form -->
     <h2>Create a new Task for an existing Work-Package</h2>
     <p th:if="${taskErrorMessage}" th:text="${taskErrorMessage}" style="color:red;"></p>
+    <p th:if="${taskSuccessMessage}" th:text="${taskSuccessMessage}" style="color:green;"></p>
     <form th:action="@{/homeAdmin/createTask}" method="post">
         <!-- Project reference -->
         <label for="TaskWorkPackage">Reference Work-Package title:</label>

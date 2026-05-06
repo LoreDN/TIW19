@@ -91,13 +91,13 @@ public class TaskDAO {
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             // get Work-Package ID
-            int workPackageID = WorkPackageDAO.getID(admin, workPackageTitle);
+            int workPackageID = WorkPackageDAO.getID(admin, projectTitle, workPackageTitle);
             if (workPackageID == -1) return false;
 
             // set the parametric query
             statement.setBigDecimal(1, new BigDecimal(String.format(
                     "%d.%02d",
-                    WorkPackageDAO.getNumber(ProjectDAO.getID(admin, projectTitle)),
+                    WorkPackageDAO.getOrderNumber(workPackageID),
                     getNumber(workPackageID) + 1)
             ));
             statement.setString(2, taskTitle);
@@ -232,19 +232,23 @@ public class TaskDAO {
      * @return All Tasks.
      * @throws SQLException DB error
      */
-    public static synchronized List<Task> getAll(String username) throws SQLException {
+    public static synchronized List<Task> getAllToBeAssigned(String username) throws SQLException {
         List<Task> tasks = new ArrayList<>();
         String query;
         User user = UserDAO.getFromUsername(username);
         if (user == null) return tasks;
         if (user.isAdmin()) {
             query = "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
-                    "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-                    "WHERE P.admin = ?";
+                    "FROM TASKS AS T " +
+                    "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
+                    "JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.admin = ? AND P.status = 'CREATED'";
         } else if (user.isManager()) {
             query = "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
-                    "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-                    "WHERE P.manager = ?";
+                    "FROM TASKS AS T " +
+                    "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
+                    "JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                    "WHERE P.manager = ? AND P.status = 'CREATED'";
         } else return tasks;
 
         // connect to the DB

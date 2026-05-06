@@ -130,23 +130,24 @@ public class WorkPackageDAO {
      * Get a Work-Packages ID from its title.
      *
      * @param username          Admin/Manager of the Project (and the Work-Packages).
+     * @param projectTitle      Title of the Project of reference.
      * @param workPackageTitle  Title of the Work-Package.
      *
      * @return WorkPackage.ID, -1 if it does not exist.
      * @throws SQLException DB error
      */
-    public static synchronized int getID(String username, String workPackageTitle) throws SQLException {
+    public static synchronized int getID(String username, String projectTitle, String workPackageTitle) throws SQLException {
         String query;
         User user = UserDAO.getFromUsername(username);
         if (user == null) return -1;
         if (user.isAdmin()) {
             query = "SELECT WP.ID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-                    "WHERE P.admin = ? AND WP.title = ?";
+                    "WHERE P.admin = ? AND P.title = ? AND WP.title = ?";
         } else if (user.isManager()) {
             query = "SELECT WP.ID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-                    "WHERE P.manager = ? AND WP.title = ?";
+                    "WHERE P.manager = ? AND P.title = ? AND WP.title = ?";
         } else return -1;
 
         // connect to the DB
@@ -155,7 +156,8 @@ public class WorkPackageDAO {
 
             // set the parametric query
             statement.setString(1, username);
-            statement.setString(2, workPackageTitle);
+            statement.setString(2, projectTitle);
+            statement.setString(3, workPackageTitle);
 
             // get the Tasks ID
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -205,6 +207,34 @@ public class WorkPackageDAO {
             }
         }
         return workPackagesID;
+    }
+
+    /**
+     * Get a Work-Packages orderNumber from its ID.
+     *
+     * @param workPackageID Title of the Work-Package.
+     *
+     * @return WorkPackage.orderNumber, 0 if it does not exist.
+     * @throws SQLException DB error
+     */
+    public static synchronized int getOrderNumber(int workPackageID) throws SQLException {
+        String query = "SELECT orderNumber " +
+                "FROM WORK_PACKAGES " +
+                "WHERE ID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, workPackageID);
+
+            // get the number of Work-Packages
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("ORDERNUMBER");
+                else return 0;
+            }
+        }
     }
 
     /**
@@ -336,17 +366,18 @@ public class WorkPackageDAO {
     }
 
     /**
-     * Check if exists at least one sub Task.
+     * Check if at least one sub Task is planned for the Month.
      *
      * @param workPackageID ID of the Work-Package to check.
+     * @param month         Month to check.
      *
-     * @return True if exists at least one sub Task, false otherwise.
+     * @return True if at least one sub Task is planned, false otherwise.
      * @throws SQLException DB error
      */
-    public static synchronized boolean existSubTasks(int workPackageID) throws SQLException {
+    public static synchronized boolean existsSubTasks(int workPackageID, int month) throws SQLException {
         String query = "SELECT count(*) " +
-                "FROM TASKS " +
-                "WHERE workPackageID = ?";
+                "FROM TASKS AS T JOIN PLANNING AS P ON P.taskID = T.ID " +
+                "WHERE T.workPackageID = ? AND P.month = ?";
 
         // connect to the DB
         try (Connection connection = DBConnection.getConnection();
@@ -354,11 +385,12 @@ public class WorkPackageDAO {
 
             // set the parametric query
             statement.setInt(1, workPackageID);
+            statement.setInt(2, month);
 
             // check the Tasks
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) return resultSet.getInt("COUNT(*)") > 0;
-                return true;
+                return false;
             }
         }
     }

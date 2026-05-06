@@ -34,9 +34,9 @@ import java.util.List;
 @WebServlet("/homeAdmin")
 public class HomeAdminServlet extends HttpServlet {
     private static final String[] variables = {
-            "projectErrorMessage", "projectTitle", "projectDuration", "projectManager",
-            "workPackageErrorMessage", "workPackageProjectTitle", "workPackageTitle", "workPackageStartingMonth", "workPackageEndingMonth",
-            "taskErrorMessage", "taskWorkPackageTitles", "taskTitle", "taskStartingMonth", "taskEndingMonth"
+            "projectErrorMessage", "projectSuccessMessage", "projectTitle", "projectDuration", "projectManager",
+            "workPackageErrorMessage", "workPackageSuccessMessage", "workPackageProjectTitle", "workPackageTitle", "workPackageStartingMonth", "workPackageEndingMonth",
+            "taskErrorMessage", "taskSuccessMessage", "taskWorkPackageTitles", "taskTitle", "taskStartingMonth", "taskEndingMonth"
     };
 
     /**

@@ -103,6 +103,7 @@ public class CreateProjectServlet extends HttpServlet {
                         projectTitle, Integer.parseInt(projectDuration),
                         ((User) session.getAttribute("user")).getUsername(), projectManager
                 );
+                session.setAttribute("projectSuccessMessage", "[Project Success] : Project has been added successfully!!!");
                 response.sendRedirect(request.getContextPath() + "/homeAdmin");
             }
         } catch (SQLException exception) {

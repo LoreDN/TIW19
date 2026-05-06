@@ -132,6 +132,7 @@ public class CreateTaskServlet extends HttpServlet {
                         ((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle, taskTitle,
                         Integer.parseInt(taskStartingMonth), Integer.parseInt(taskEndingMonth)
                 )) {
+                    session.setAttribute("taskSuccessMessage", "[Task Success] : Task has been added successfully!!!");
                     response.sendRedirect(request.getContextPath() + "/homeAdmin");
                 } else {
                     reloadWebPage("[DB Error] : Creation of Task \"" + taskTitle + "\" for the Work-Package \"" + workPackageTitle + "\" for the Project \"" + projectTitle + "\" was not successfully!!! " +

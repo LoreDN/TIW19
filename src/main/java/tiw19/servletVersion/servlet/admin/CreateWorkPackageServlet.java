@@ -116,6 +116,7 @@ public class CreateWorkPackageServlet extends HttpServlet {
                         ((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle,
                         Integer.parseInt(workPackageStartingMonth), Integer.parseInt(workPackageEndingMonth)
                 )) {
+                    session.setAttribute("workPackageSuccessMessage", "[Work-Package Success] : Work-Package has been added successfully!!!");
                     response.sendRedirect(request.getContextPath() + "/homeAdmin");
                 } else {
                     reloadWebPage("[DB Error] : Creation of Work-Package \"" + workPackageTitle + "\" for the Project \"" + projectTitle + "\" was not successfully!!! " +
