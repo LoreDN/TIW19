@@ -9,6 +9,7 @@ package tiw19.servletVersion.model;
  * @since 1.0
  */
 public class User {
+    private final int ID;
     private final String name;
     private final String surname;
     private final String username;
@@ -18,18 +19,29 @@ public class User {
     /**
      * Constructor of the User.
      *
-     * @param name Name of the User.
-     * @param surname Surname of the User.
-     * @param username Username of the User.
-     * @param photo Path to the User profile picture.
-     * @param role Role of the User (ADMIN vs TECHNICAL STUFF)
+     * @param ID        ID of the User.
+     * @param name      Name of the User.
+     * @param surname   Surname of the User.
+     * @param username  Username of the User.
+     * @param photo     Path to the User profile picture.
+     * @param role      Role of the User (ADMIN vs TECHNICAL STUFF)
      */
-    public User(String name, String surname, String username, String photo, String role) {
+    public User(int ID, String name, String surname, String username, String photo, String role) {
+        this.ID = ID;
         this.name = name;
         this.surname = surname;
         this.username = username;
         this.photo = photo;
         this.role = role;
+    }
+
+    /**
+     * Getter for the attribute ID.
+     *
+     * @return User.ID
+     */
+    public int getID() {
+        return ID;
     }
 
     /**

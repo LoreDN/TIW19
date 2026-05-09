@@ -11,8 +11,8 @@ import java.sql.SQLException;
 
 import java.math.BigDecimal;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Task Data-Access-Object.
@@ -238,13 +238,13 @@ public class TaskDAO {
         User user = UserDAO.getFromUsername(username);
         if (user == null) return tasks;
         if (user.isAdmin()) {
-            query = "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                     "FROM TASKS AS T " +
                     "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
                     "JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.admin = ? AND P.status = 'CREATED'";
         } else if (user.isManager()) {
-            query = "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                     "FROM TASKS AS T " +
                     "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
                     "JOIN PROJECTS AS P ON WP.projectID = P.ID " +
@@ -262,9 +262,11 @@ public class TaskDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     tasks.add(new Task(
+                            resultSet.getInt("ID"),
+                            resultSet.getFloat("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
-                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
                             ProjectDAO.getFromID(resultSet.getInt("PROJECTID")),
                             WorkPackageDAO.getFromID(resultSet.getInt("WORKPACKAGEID"))
                     ));
@@ -291,11 +293,11 @@ public class TaskDAO {
         User user = UserDAO.getFromUsername(username);
         if (user == null) return null;
         if (user.isAdmin()) {
-            query = "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                     "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.title = ? AND P.admin = ? AND WP.title = ? AND T.title = ?";
         } else if (user.isManager()) {
-            query = "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                     "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.title = ? AND P.manager = ? AND WP.title = ? AND T.title = ?";
         } else return null;
@@ -314,11 +316,13 @@ public class TaskDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return new Task(
+                            resultSet.getInt("ID"),
+                            resultSet.getFloat("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
-                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
-                            ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID"))),
-                            WorkPackageDAO.getFromID(Integer.parseInt(resultSet.getString("WORKPACKAGEID")))
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
+                            ProjectDAO.getFromID(resultSet.getInt("PROJECTID")),
+                            WorkPackageDAO.getFromID(resultSet.getInt("WORKPACKAGEID"))
                     );
                 } else return null;
             }
@@ -334,7 +338,7 @@ public class TaskDAO {
      * @throws SQLException DB error
      */
     public static synchronized Task getFromID(int taskID) throws SQLException {
-        String query = "SELECT T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+        String query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                 "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                 "WHERE T.ID = ?";
 
@@ -349,11 +353,13 @@ public class TaskDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return new Task(
+                            resultSet.getInt("ID"),
+                            resultSet.getFloat("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
-                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
-                            ProjectDAO.getFromID(Integer.parseInt(resultSet.getString("PROJECTID"))),
-                            WorkPackageDAO.getFromID(Integer.parseInt(resultSet.getString("WORKPACKAGEID")))
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
+                            ProjectDAO.getFromID(resultSet.getInt("PROJECTID")),
+                            WorkPackageDAO.getFromID(resultSet.getInt("WORKPACKAGEID"))
                     );
                 } else return null;
             }

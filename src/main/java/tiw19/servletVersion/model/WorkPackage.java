@@ -9,6 +9,8 @@ package tiw19.servletVersion.model;
  * @since 1.0
  */
 public class WorkPackage {
+    private final int ID;
+    private final int orderNumber;
     private final String title;
     private final int startingMonth;
     private final int endingMonth;
@@ -17,16 +19,38 @@ public class WorkPackage {
     /**
      * Constructor of the Work-Package.
      *
+     * @param ID            ID of the Work-Package.
+     * @param orderNumber   Order Number of the Work-Package.
      * @param title         Title of the Work-Package.
      * @param startingMonth Starting month of the Work-Package.
      * @param endingMonth   Ending month of the Work-Package.
      * @param project       Reference Project.
      */
-    public WorkPackage(String title, int startingMonth, int endingMonth,  Project project) {
+    public WorkPackage(int ID, int orderNumber, String title, int startingMonth, int endingMonth,  Project project) {
+        this.ID = ID;
+        this.orderNumber = orderNumber;
         this.title = title;
         this.startingMonth = startingMonth;
         this.endingMonth = endingMonth;
         this.project = project;
+    }
+
+    /**
+     * Getter for the attribute ID.
+     *
+     * @return WorkPackage.ID
+     */
+    public int getID() {
+        return ID;
+    }
+
+    /**
+     * Getter for the attribute orderNumber.
+     *
+     * @return WorkPackage.orderNumber
+     */
+    public int getOrderNumber() {
+        return orderNumber;
     }
 
     /**
@@ -63,5 +87,19 @@ public class WorkPackage {
      */
     public Project getProject() {
         return project;
+    }
+
+    // ----- Object Overrides
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof WorkPackage workPackage)) return false;
+        return this.ID == workPackage.ID;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(this.ID);
     }
 }

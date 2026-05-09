@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page - Collaborator role</title>
+</head>
+<body>
+    <h1>Home Page - Collaborator role</h1>
+    <p th:text="'Welcome, ' + ${session.user.name} + ' ' + ${session.user.surname}"></p>
+    <p><a th:href="@{/logout}">LOGOUT</a></p>
+
+    <!-- Project list -->
+    <h2>Your assigned Projects</h2>
+    <p th:if="${projectsErrorMessage}" th:text="${projectsErrorMessage}" style="color:red;"></p>
+    <p th:if="${projects == null or #lists.isEmpty(projects)}">No projects currently assigned to you.</p>
+    <ul th:unless="${projects == null or #lists.isEmpty(projects)}">
+        <li th:each="p : ${projects}">
+            <a th:href="@{/homeCollaborator(projectID=${p.getID()})}"
+               th:text="${'Admin: ' + p.getAdmin() + ' | Project Title: ' + p.getTitle() + ' | Months: ' + p.getMonthsNumber()}">
+            </a>
+        </li>
+    </ul>
+
+    <!--Work-Package & Task list -->
+    <p th:if="${assignmentsErrorMessage}" th:text="${assignmentsErrorMessage}" style="color:red;"></p>
+    <div th:if="${selectedProject != null}">
+        <h2 th:text="'Project: ' + ${selectedProject.getTitle()} + ' --> Work Packages &amp; Tasks'"></h2>
+        <div th:each="wp : ${assignments.keySet()}">
+            <h3 th:text="'Work-Package ' + ${wp.getOrderNumber()} + ': ' + ${wp.getTitle()} + ' | M' + ${wp.getStartingMonth()} + ' -> M' + ${wp.getEndingMonth()}"></h3>
+            <ul>
+                <li th:each="t : ${assignments.get(wp)}">
+                    <a th:href="@{/homeCollaborator(projectID=${selectedProject.getID()},taskID=${t.getID()})}"
+                       th:text="${'Task ' + t.getOrderNumber() + ': ' + t.getTitle() + ' | M' + t.getStartingMonth() + ' -> M' + t.getEndingMonth()}">
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Hours form -->
+    <div th:if="${selectedTask != null}">
+        <h2>Task Detail</h2>
+        <p><strong>Title:</strong> <span th:text="${selectedTask.getTitle()}"></span></p>
+        <p><strong>Period:</strong> M<span th:text="${selectedTask.getStartingMonth()}"></span> -> M<span th:text="${selectedTask.getEndingMonth()}"></span></p>
+        <div th:each="p : ${plannings}">
+            <span th:text="'Month ' + ${p.getMonth()} + ':'"></span>
+            <ul>
+                <li th:text="'Planned Hours: ' + ${p.getPlannedHours()}"></li>
+                <li th:text="'Total Worked Hours: ' + ${p.getWorkedHours()}"></li>
+            </ul>
+        </div>
+
+        <!-- form -->
+        <h3>Log Worked Hours</h3>
+        <p th:if="${hoursErrorMessage}" th:text="${hoursErrorMessage}" style="color:red;"></p>
+        <p th:if="${hoursSuccessMessage}" th:text="${hoursSuccessMessage}" style="color:green;"></p>
+        <form th:action="@{/homeCollaborator/logHours}" method="post">
+            <!-- hidden fields -->
+            <input type="hidden" name="projectID" th:value="${selectedProject.getID()}"/>
+            <input type="hidden" name="taskID" th:value="${selectedTask.getID()}"/>
+
+            <!-- form parameters -->
+            <label for="Month">Month:</label>
+            <select id="Month" name="month" required>
+                <option th:each="m : ${taskMonths}"
+                        th:value="${m}"
+                        th:text="'M' + ${m}"
+                        th:selected="${m == selectedMonth}">
+                </option>
+            </select><br/>
+
+            <label for="WorkedHours">Worked Hours:</label>
+            <input type="number" id="WorkedHours" name="hours" th:value="${workedHours}" min="0" required/><br/>
+
+            <button type="submit">SAVE</button>
+        </form>
+    </div>
+</body>
+</html>

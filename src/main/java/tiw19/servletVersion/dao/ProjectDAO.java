@@ -95,45 +95,6 @@ public class ProjectDAO {
     }
 
     /**
-     * Get Project ID from its title.
-     *
-     * @param username      Admin/Manager of the Project.
-     * @param projectTitle  Title of the Project.
-     *
-     * @return Project.ID, -1 if it does not exist.
-     * @throws SQLException DB error
-     */
-    public static synchronized int getID(String username, String projectTitle) throws SQLException {
-        String query;
-        User user = UserDAO.getFromUsername(username);
-        if (user == null) return -1;
-        else if (user.isAdmin()) {
-            query = "SELECT ID " +
-                    "FROM PROJECTS " +
-                    "WHERE title = ? and admin = ?";
-        } else if (user.isManager()) {
-            query = "SELECT ID " +
-                    "FROM PROJECTS " +
-                    "WHERE title = ? and manager = ?";
-        } else return -1;
-
-        // connect to the DB
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-
-            // set the parametric query
-            statement.setString(1, projectTitle);
-            statement.setString(2, username);
-
-            // get the Tasks ID
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) return resultSet.getInt("ID");
-                else return -1;
-            }
-        }
-    }
-
-    /**
      * Get a Project by its title.
      * <br>This static method gets a Project only from its title.
      *
@@ -148,7 +109,7 @@ public class ProjectDAO {
         User user = UserDAO.getFromUsername(username);
         if (user == null) return null;
         else if (user.isAdmin()) {
-            query = "SELECT title, monthsNumber, status, admin " +
+            query = "SELECT ID, title, monthsNumber, status, admin " +
                     "FROM PROJECTS " +
                     "WHERE title = ? AND admin = ?";
         } else if (user.isManager()) {
@@ -169,6 +130,7 @@ public class ProjectDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return new Project(
+                            resultSet.getInt("ID"),
                             resultSet.getString("TITLE"),
                             resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
@@ -204,6 +166,7 @@ public class ProjectDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return new Project(
+                            ID,
                             resultSet.getString("TITLE"),
                             resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
@@ -228,7 +191,7 @@ public class ProjectDAO {
         User user = UserDAO.getFromUsername(admin);
         if (user == null) return projects;
         if (!user.isAdmin()) return projects;
-        String query = "SELECT title, monthsNumber, status, admin " +
+        String query = "SELECT ID, title, monthsNumber, status, admin " +
                 "FROM PROJECTS " +
                 "WHERE status = 'CREATED' AND admin = ?";
 
@@ -243,6 +206,7 @@ public class ProjectDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     projects.add(new Project(
+                            resultSet.getInt("ID"),
                             resultSet.getString("TITLE"),
                             resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
@@ -268,7 +232,7 @@ public class ProjectDAO {
         User user = UserDAO.getFromUsername(manager);
         if (user == null) return projects;
         if (!user.isManager()) return projects;
-        String query = "SELECT title, monthsNumber, status, admin " +
+        String query = "SELECT ID, title, monthsNumber, status, admin " +
                 "FROM PROJECTS " +
                 "WHERE status = 'CREATED' AND manager = ?";
 
@@ -283,6 +247,7 @@ public class ProjectDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     projects.add(new Project(
+                            resultSet.getInt("ID"),
                             resultSet.getString("TITLE"),
                             resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
@@ -309,9 +274,9 @@ public class ProjectDAO {
         if (user == null || !user.isManager()) return false;
 
         // check Project
-        int projectID = getID(manager, projectTitle);
-        Project project = getFromID(projectID);
+        Project project = getFromTitle(manager, projectTitle);
         if (project == null) return false;
+        int projectID = project.getID();
         for (int month = 1; month <= project.getMonthsNumber(); month++) {
             if (!existsSubWorkPackages(projectID, month)) return false;
         }
@@ -393,5 +358,51 @@ public class ProjectDAO {
             statement.executeUpdate();
         }
         return true;
+    }
+
+    /**
+     * Get all Project with status ASSIGNED.
+     * <br>This static method gets all the Projects with the status CREATED.
+     *
+     * @param collaborator Collaborator to the Tasks (and the Projects).
+     *
+     * @return Projects with Project.status == ASSIGNED.
+     * @throws SQLException DB error
+     */
+    public static synchronized List<Project> getAssignedProjects(String collaborator) throws SQLException {
+        List<Project> projects = new ArrayList<>();
+        User user = UserDAO.getFromUsername(collaborator);
+        if (user == null || !user.isCollaborator()) return projects;
+        String query = "SELECT P.ID, P.title, P.monthsNumber, P.admin, P.status " +
+                "FROM PROJECTS AS P " +
+                "WHERE P.status = 'ASSIGNED' AND EXISTS (" +
+                    "SELECT 1 " +
+                    "FROM WORK_PACKAGES AS WP " +
+                    "JOIN TASKS AS T ON T.workPackageID = WP.ID " +
+                    "JOIN COLLABORATORS AS C ON C.taskID = T.ID " +
+                    "WHERE WP.projectID = P.ID AND C.userID = ?" +
+                ")";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set parametric query
+            statement.setInt(1, UserDAO.getID(collaborator));
+
+            // get the Projects
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    projects.add(new Project(
+                            resultSet.getInt("ID"),
+                            resultSet.getString("TITLE"),
+                            Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
+                            resultSet.getString("ADMIN"),
+                            resultSet.getString("STATUS")
+                    ));
+                }
+            }
+        }
+        return projects;
     }
 }

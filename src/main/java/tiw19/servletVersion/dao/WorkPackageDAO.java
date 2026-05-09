@@ -1,6 +1,7 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
+import tiw19.servletVersion.model.Project;
 import tiw19.servletVersion.model.User;
 import tiw19.servletVersion.model.WorkPackage;
 
@@ -82,8 +83,9 @@ public class WorkPackageDAO {
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             // get Project ID
-            int projectID = ProjectDAO.getID(admin, projectTitle);
-            if (projectID == -1) return false;
+            Project project = ProjectDAO.getFromTitle(admin, projectTitle);
+            if (project == null) return false;
+            int projectID = project.getID();
 
             // set the parametric query
             statement.setInt(1, getNumber(projectID) + 1);
@@ -251,11 +253,11 @@ public class WorkPackageDAO {
         User user = UserDAO.getFromUsername(username);
         if (user == null) return workPackages;
         if (user.isAdmin()) {
-            query = "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+            query = "SELECT WP.ID, WP.orderNumber, WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.admin = ?";
         } else if (user.isManager()) {
-            query = "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+            query = "SELECT WP.ID, WP.orderNumber, WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.manager = ?";
         } else return workPackages;
@@ -271,9 +273,11 @@ public class WorkPackageDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     workPackages.add(new WorkPackage(
+                            resultSet.getInt("ID"),
+                            resultSet.getInt("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
-                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
                             ProjectDAO.getFromID(resultSet.getInt("PROJECTID"))
                     ));
                 }
@@ -298,11 +302,11 @@ public class WorkPackageDAO {
         User user = UserDAO.getFromUsername(username);
         if (user == null) return null;
         if (user.isAdmin()) {
-            query = "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+            query = "SELECT WP.ID, WP.orderNumber, WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.title = ? AND P.admin = ? AND WP.title = ?";
         } else if (user.isManager()) {
-            query = "SELECT WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
+            query = "SELECT WP.ID, WP.orderNumber, WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.title = ? AND P.manager = ? AND WP.title = ?";
         } else return null;
@@ -320,9 +324,11 @@ public class WorkPackageDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return new WorkPackage(
+                            resultSet.getInt("ID"),
+                            resultSet.getInt("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
-                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
                             ProjectDAO.getFromID(resultSet.getInt("PROJECTID"))
                     );
                 } else return null;
@@ -340,7 +346,7 @@ public class WorkPackageDAO {
      * @throws SQLException DB error
      */
     public static synchronized WorkPackage getFromID(int ID) throws SQLException {
-        String query = "SELECT title, startingMonth, endingMonth, projectID " +
+        String query = "SELECT ID, orderNumber, title, startingMonth, endingMonth, projectID " +
                 "FROM WORK_PACKAGES " +
                 "WHERE ID = ?";
 
@@ -355,9 +361,11 @@ public class WorkPackageDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return new WorkPackage(
+                            resultSet.getInt("ID"),
+                            resultSet.getInt("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("STARTINGMONTH")),
-                            Integer.parseInt(resultSet.getString("ENDINGMONTH")),
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
                             ProjectDAO.getFromID(resultSet.getInt("PROJECTID"))
                     );
                 } else return null;

@@ -29,7 +29,7 @@ public class UserDAO {
      * @throws SQLException DB error
      */
     public static synchronized User checkCredentials(String username, String password) throws SQLException {
-        String query = "SELECT name, surname, username, photo, role " +
+        String query = "SELECT ID, name, surname, username, photo, role " +
                 "FROM USERS " +
                 "WHERE username = ? AND password = ?";
 
@@ -45,6 +45,7 @@ public class UserDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return new User(
+                            resultSet.getInt("ID"),
                             resultSet.getString("NAME"),
                             resultSet.getString("SURNAME"),
                             resultSet.getString("USERNAME"),
@@ -94,7 +95,7 @@ public class UserDAO {
      * @throws SQLException DB error
      */
     public static User getFromUsername(String username) throws SQLException {
-        String query = "SELECT name, surname, username, photo, role " +
+        String query = "SELECT ID, name, surname, username, photo, role " +
                 "FROM USERS " +
                 "WHERE username = ?";
         try (Connection connection = DBConnection.getConnection();
@@ -107,6 +108,7 @@ public class UserDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return new User(
+                            resultSet.getInt("ID"),
                             resultSet.getString("NAME"),
                             resultSet.getString("SURNAME"),
                             resultSet.getString("USERNAME"),

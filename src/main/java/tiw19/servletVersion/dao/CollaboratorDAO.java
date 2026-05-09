@@ -2,11 +2,15 @@ package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
 import tiw19.servletVersion.model.Task;
+import tiw19.servletVersion.model.User;
+import tiw19.servletVersion.model.WorkPackage;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import java.util.*;
 
 /**
  * Collaborator Data-Access-Object.
@@ -116,5 +120,89 @@ public class CollaboratorDAO {
             }
         }
         return true;
+    }
+
+    /**
+     * Get all the assignments to a Collaborator in a Project.
+     *
+     * @param username  Username of the Collaborator.
+     * @param projectID ID of the Project.
+     *
+     * @return Map of Tasks for each Work-Package.
+     * @throws SQLException DB error
+     */
+    public static synchronized Map<WorkPackage, List<Task>> getAssignments(String username, int projectID) throws SQLException {
+        Map<WorkPackage, List<Task>> assignments = new LinkedHashMap<>();
+        User collaborator = UserDAO.getFromUsername(username);
+        if (collaborator == null || !collaborator.isCollaborator()) return assignments;
+        String query = "SELECT  DISTINCT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+                "FROM COLLABORATORS AS C " +
+                "JOIN TASKS AS T ON C.taskID = T.ID " +
+                "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
+                "JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+                "WHERE C.userID = ? AND P.ID = ? " +
+                "ORDER BY WP.orderNumber, T.orderNumber";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, collaborator.getID());
+            statement.setInt(2, projectID);
+
+            // get the Work-Packages & Tasks
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    WorkPackage workPackage = WorkPackageDAO.getFromID(resultSet.getInt("WORKPACKAGEID"));
+                    if (workPackage == null) return new HashMap<>();
+                    if (!assignments.containsKey(workPackage)) assignments.put(workPackage, new ArrayList<>());
+                    assignments.get(workPackage).add(new Task(
+                            resultSet.getInt("ID"),
+                            resultSet.getFloat("ORDERNUMBER"),
+                            resultSet.getString("TITLE"),
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
+                            workPackage.getProject(),
+                            workPackage
+                    ));
+                }
+            }
+
+        }
+        return assignments;
+    }
+
+    /**
+     * Get all the Months assigned to a Collaborator for a Task.
+     *
+     * @param userID ID of the Collaborator in the triplet (Task, Month, Collaborator).
+     * @param taskID ID of the Task in the triplet (Task, Month, Collaborator).
+     *
+     * @return All months assigned to the Collaborator for the Task.
+     * @throws SQLException DB error
+     */
+    public static synchronized List<Integer> getAssignedMonths(int userID, int taskID) throws SQLException {
+        String query = "SELECT month " +
+                "FROM COLLABORATORS " +
+                "WHERE userID = ? AND taskID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, userID);
+            statement.setInt(2, taskID);
+
+            // get the Months
+            List<Integer> months = new ArrayList<>();
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    months.add(resultSet.getInt("MONTH"));
+                }
+            }
+            return months;
+        }
     }
 }

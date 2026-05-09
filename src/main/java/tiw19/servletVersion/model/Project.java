@@ -9,6 +9,7 @@ package tiw19.servletVersion.model;
  * @since 1.0
  */
 public class Project {
+    private final int ID;
     private final String title;
     private final int monthsNumber;
     private final String admin;
@@ -17,16 +18,27 @@ public class Project {
     /**
      * Constructor of the Project.
      *
+     * @param ID            ID of the Project;
      * @param title         Title of the Project.
      * @param monthsNumber  Duration (in months) of the Project.
      * @param admin         Amin of the project.
      * @param status        Status of the Project (CREATED vs ASSIGNED vs CONCLUDED).
      */
-    public Project(String title, int monthsNumber, String admin, String status) {
+    public Project(int ID, String title, int monthsNumber, String admin, String status) {
+        this.ID = ID;
         this.title = title;
         this.monthsNumber = monthsNumber;
         this.admin = admin;
         this.status = status;
+    }
+
+    /**
+     * Getter for the attribute ID.
+     *
+     * @return Project.ID
+     */
+    public int getID() {
+        return ID;
     }
 
     /**

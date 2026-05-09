@@ -2,11 +2,15 @@ package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
 import tiw19.servletVersion.model.Task;
+import tiw19.servletVersion.model.Planning;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Planning Data-Access-Object.
@@ -107,6 +111,42 @@ public class PlanningDAO {
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) return resultSet.getInt("COUNT(*)") == task.getEndingMonth() - task.getStartingMonth() + 1;
                 else return false;
+            }
+        }
+    }
+
+    /**
+     * Get the Planning for a Task.
+     *
+     * @param taskID ID of the Task.
+     *
+     * @return Planning of the Task.
+     * @throws SQLException DB error
+     */
+    public static synchronized List<Planning> getFromTask(int taskID) throws SQLException {
+        String query = "SELECT * " +
+                "FROM PLANNING " +
+                "WHERE taskID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, taskID);
+
+            // get the Plannings
+            try (ResultSet resultSet = statement.executeQuery()) {
+                List<Planning> plannings = new ArrayList<>();
+                while (resultSet.next()) {
+                    plannings.add(new Planning(
+                            resultSet.getInt("TASKID"),
+                            resultSet.getInt("MONTH"),
+                            resultSet.getInt("PLANNEDHOURS"),
+                            resultSet.getInt("WORKEDHOURS")
+                    ));
+                }
+                return plannings;
             }
         }
     }
