@@ -205,4 +205,34 @@ public class CollaboratorDAO {
             return months;
         }
     }
+
+    /**
+     * Log the Worked Hours for the triplet (Task, Month, Collaborator).
+     *
+     * @param userID        ID of the Collaborator in the triplet (Task, Month, Collaborator).
+     * @param taskID        ID of the Task in the triplet (Task, Month, Collaborator).
+     * @param month         Month in the triplet (Task, Month, Collaborator).
+     * @param workedHours   Worked Hours to log.
+     *
+     * @throws SQLException DB error
+     */
+    public static synchronized void logWorkedHours(int userID, int taskID, int month, int workedHours) throws SQLException {
+        String query = "UPDATE COLLABORATORS " +
+                "SET workedHours = ? " +
+                "WHERE userID = ? AND taskID = ? AND month = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, workedHours);
+            statement.setInt(2, userID);
+            statement.setInt(3, taskID);
+            statement.setInt(4, month);
+
+            // update the DB
+            statement.executeUpdate();
+        }
+    }
 }

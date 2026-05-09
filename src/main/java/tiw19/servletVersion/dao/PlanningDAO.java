@@ -150,4 +150,34 @@ public class PlanningDAO {
             }
         }
     }
+
+    /**
+     * Update the Total Worked Hours for the couple (Task, Month).
+     *
+     * @param taskID    ID of the Task in the couple (Task, Month).
+     * @param month     Month in the couple (Task, Month).
+     *
+     * @throws SQLException DB error
+     */
+    public static synchronized void updatePlanning(int taskID, int month) throws SQLException {
+        String query = "UPDATE PLANNING as P " +
+                "SET P.workedHours = (" +
+                    "SELECT sum(workedHours) " +
+                    "FROM COLLABORATORS as C " +
+                    "WHERE C.taskID = P.taskID AND C.month = P.month " +
+                ") " +
+                "WHERE P.taskID = ? AND P.month = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, taskID);
+            statement.setInt(2, month);
+
+            // update the DB
+            statement.executeUpdate();
+        }
+    }
 }
