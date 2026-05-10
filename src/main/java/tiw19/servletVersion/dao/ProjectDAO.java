@@ -1,9 +1,7 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
-import tiw19.servletVersion.model.Project;
-import tiw19.servletVersion.model.User;
-import tiw19.servletVersion.model.WorkPackage;
+import tiw19.servletVersion.model.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +10,8 @@ import java.sql.SQLException;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 /**
  * Project Data-Access-Object.
@@ -25,7 +25,6 @@ public class ProjectDAO {
 
     /**
      * Check if a Project already exists.
-     * <br>This static method checks if a Project already exists, by query for the title.
      *
      * @param username      Admin/Manager of the Project to check.
      * @param projectTitle  Title of the Project to check.
@@ -65,7 +64,6 @@ public class ProjectDAO {
 
     /**
      * Add a new Project.
-     * <br>This static method adds a new Project into the DB.
      *
      * @param projectTitle      Title of the Project.
      * @param projectDuration   Duration (in months) of the Project.
@@ -96,7 +94,6 @@ public class ProjectDAO {
 
     /**
      * Get a Project by its title.
-     * <br>This static method gets a Project only from its title.
      *
      * @param username  Admin/Manager of the Project.
      * @param title     Title of the Project.
@@ -143,7 +140,6 @@ public class ProjectDAO {
 
     /**
      * Get a Project by its ID.
-     * <br>This static method gets a Project only from its ID.
      *
      * @param ID ID of the Project.
      *
@@ -179,7 +175,6 @@ public class ProjectDAO {
 
     /**
      * Get all Project with status CREATED.
-     * <br>This static method gets all the Projects with the status CREATED.
      *
      * @param admin Admin of the Projects.
      *
@@ -189,8 +184,7 @@ public class ProjectDAO {
     public static synchronized List<Project> getCreatedProjects(String admin) throws SQLException {
         List<Project> projects = new ArrayList<>();
         User user = UserDAO.getFromUsername(admin);
-        if (user == null) return projects;
-        if (!user.isAdmin()) return projects;
+        if (user == null || !user.isAdmin()) return projects;
         String query = "SELECT ID, title, monthsNumber, status, admin " +
                 "FROM PROJECTS " +
                 "WHERE status = 'CREATED' AND admin = ?";
@@ -220,7 +214,6 @@ public class ProjectDAO {
 
     /**
      * Get all Project to be Assigned.
-     * <br>This static method gets all the Projects that has to yet be Assigned.
      *
      * @param manager Manager of the Projects.
      *
@@ -230,8 +223,7 @@ public class ProjectDAO {
     public static synchronized List<Project> getToBeAssignedProjects(String manager) throws SQLException {
         List<Project> projects = new ArrayList<>();
         User user = UserDAO.getFromUsername(manager);
-        if (user == null) return projects;
-        if (!user.isManager()) return projects;
+        if (user == null || !user.isManager()) return projects;
         String query = "SELECT ID, title, monthsNumber, status, admin " +
                 "FROM PROJECTS " +
                 "WHERE status = 'CREATED' AND manager = ?";
@@ -261,7 +253,6 @@ public class ProjectDAO {
 
     /**
      * Check if a Project can be assigned.
-     * <br>This static method check if Project is valid to be assigned.
      *
      * @param manager       Manager of the project.
      * @param projectTitle  Title of the Project.
@@ -361,8 +352,7 @@ public class ProjectDAO {
     }
 
     /**
-     * Get all Project with status ASSIGNED.
-     * <br>This static method gets all the Projects with the status CREATED.
+     * Get all the Projects with status ASSIGNED.
      *
      * @param collaborator Collaborator to the Tasks (and the Projects).
      *
@@ -400,6 +390,48 @@ public class ProjectDAO {
                             resultSet.getString("ADMIN"),
                             resultSet.getString("STATUS")
                     ));
+                }
+            }
+        }
+        return projects;
+    }
+
+    /**
+     * Get all the Projects with a given status for an Admin.
+     *
+     * @param admin     Admin of the Projects.
+     * @param status    Status of the wanted projects.
+     *
+     * @return All the Projects with the given status for the Admin.
+     * @throws SQLException DB error
+     */
+    public static synchronized Map<Project, Map<WorkPackage, List<Task>>> getAll(String admin, String status) throws SQLException {
+        Map<Project, Map<WorkPackage, List<Task>>> projects = new LinkedHashMap<>();
+        User user = UserDAO.getFromUsername(admin);
+        if (user == null || !user.isAdmin()) return projects;
+        String query = "SELECT P.ID, P.title, P.monthsNumber, P.admin, P.status " +
+                "FROM PROJECTS AS P " +
+                "WHERE P.admin = ? AND status = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setString(1, admin);
+            statement.setString(2, status);
+
+            // get the Projects
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Project project = new Project(
+                            resultSet.getInt("ID"),
+                            resultSet.getString("TITLE"),
+                            resultSet.getInt("MONTHSNUMBER"),
+                            resultSet.getString("ADMIN"),
+                            resultSet.getString("STATUS")
+                    );
+                    projects.put(project, WorkPackageDAO.getFromProject(project));
                 }
             }
         }

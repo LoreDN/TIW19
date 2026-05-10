@@ -85,7 +85,7 @@ public class HomeAdminServlet extends HttpServlet {
 
         // load Work-Packages
         try {
-            List<WorkPackage> workPackages = WorkPackageDAO.getAll(((User) session.getAttribute("user")).getUsername());
+            List<WorkPackage> workPackages = WorkPackageDAO.getCreated(((User) session.getAttribute("user")).getUsername());
             context.setVariable("workPackages", workPackages);
         } catch (SQLException exception) {
             String errorMessage = "[DB Error] : Error while getting Work-Packages from DB!!!";

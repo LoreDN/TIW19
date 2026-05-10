@@ -1,9 +1,7 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
-import tiw19.servletVersion.model.Project;
-import tiw19.servletVersion.model.User;
-import tiw19.servletVersion.model.WorkPackage;
+import tiw19.servletVersion.model.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,6 +10,8 @@ import java.sql.SQLException;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 /**
  * Work-Package Data-Access-Object.
@@ -25,7 +25,6 @@ public class WorkPackageDAO {
 
     /**
      * Check if a Work-Package already exists.
-     * <br>This static method checks if a Work-Package already exists, by query for the title.
      *
      * @param admin             Admin of the Project referring to the Work-Package.
      * @param projectTitle      Title of the Project referring to the Work-Package.
@@ -60,7 +59,6 @@ public class WorkPackageDAO {
 
     /**
      * Add a new Work-Package.
-     * <br>This static method adds a new Work-Package into the DB.
      *
      * @param admin                     Admin of the Project referring to the Work-Package.
      * @param projectTitle              Title of the Project referring to the Work-Package.
@@ -240,14 +238,14 @@ public class WorkPackageDAO {
     }
 
     /**
-     * Get all the Work-Packages.
+     * Get all the Work-Packages with status CREATED.
      *
      * @param username Admin/Manager of the Projects (and Work-Packages).
      *
-     * @return All Work-Packages.
+     * @return All Work-Packages with status == CREATED.
      * @throws SQLException DB error
      */
-    public static synchronized List<WorkPackage> getAll(String username) throws SQLException {
+    public static synchronized List<WorkPackage> getCreated(String username) throws SQLException {
         List<WorkPackage> workPackages = new ArrayList<>();
         String query;
         User user = UserDAO.getFromUsername(username);
@@ -255,11 +253,11 @@ public class WorkPackageDAO {
         if (user.isAdmin()) {
             query = "SELECT WP.ID, WP.orderNumber, WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-                    "WHERE P.admin = ?";
+                    "WHERE P.admin = ? AND P.status = 'CREATED'";
         } else if (user.isManager()) {
             query = "SELECT WP.ID, WP.orderNumber, WP.title, WP.startingMonth, WP.endingMonth, WP.projectID " +
                     "FROM WORK_PACKAGES AS WP JOIN PROJECTS AS P ON WP.projectID = P.ID " +
-                    "WHERE P.manager = ?";
+                    "WHERE P.manager = ? AND P.status = 'CREATED'";
         } else return workPackages;
 
         // connect to the DB
@@ -288,7 +286,6 @@ public class WorkPackageDAO {
 
     /**
      * Get the Work-Package by its title.
-     * <br>This static method gets a Work-Package only from its title (and the Project's one).
      *
      * @param username          Admin/Manager of the Project.
      * @param projectTitle      Title of the Project.
@@ -338,7 +335,6 @@ public class WorkPackageDAO {
 
     /**
      * Get a Work-Package by its ID.
-     * <br>This static method gets a Work-Package only from its ID.
      *
      * @param ID ID of the Work-Package.
      *
@@ -346,7 +342,7 @@ public class WorkPackageDAO {
      * @throws SQLException DB error
      */
     public static synchronized WorkPackage getFromID(int ID) throws SQLException {
-        String query = "SELECT ID, orderNumber, title, startingMonth, endingMonth, projectID " +
+        String query = "SELECT * " +
                 "FROM WORK_PACKAGES " +
                 "WHERE ID = ?";
 
@@ -371,6 +367,47 @@ public class WorkPackageDAO {
                 } else return null;
             }
         }
+    }
+
+    /**
+     * Get all the Work-Packages from a Project.
+     *
+     * @param project Project of reference.
+     *
+     * @return All Work-Packages for the Project.
+     * @throws SQLException DB error
+     */
+    public static synchronized Map<WorkPackage, List<Task>> getFromProject(Project project) throws SQLException {
+        Map<WorkPackage, List<Task>> workPackages = new LinkedHashMap<>();
+        if (project == null) return workPackages;
+        String query = "SELECT * " +
+                "FROM WORK_PACKAGES " +
+                "WHERE projectID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, project.getID());
+
+            // get the Work-Packages
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    int ID =  resultSet.getInt("ID");
+                    WorkPackage workPackage = new WorkPackage(
+                            ID,
+                            resultSet.getInt("ORDERNUMBER"),
+                            resultSet.getString("TITLE"),
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
+                            project
+                    );
+                    workPackages.put(workPackage, TaskDAO.getFromWorkPackage(workPackage));
+                }
+            }
+        }
+        return workPackages;
     }
 
     /**

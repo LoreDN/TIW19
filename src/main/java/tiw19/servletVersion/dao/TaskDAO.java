@@ -3,6 +3,7 @@ package tiw19.servletVersion.dao;
 import tiw19.servletVersion.db.DBConnection;
 import tiw19.servletVersion.model.Task;
 import tiw19.servletVersion.model.User;
+import tiw19.servletVersion.model.WorkPackage;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -26,7 +27,6 @@ public class TaskDAO {
 
     /**
      * Check if a Task already exists.
-     * <br>This static method checks if a Task already exists, by query for the title.
      *
      * @param admin             Admin of the Project referring to the Task.
      * @param projectTitle      Title of the Project referring to the Task.
@@ -68,7 +68,6 @@ public class TaskDAO {
 
     /**
      * Add a new Task.
-     * <br>This static method adds a new Task into the DB.
      *
      * @param projectTitle              Title of the Project referring to the Task.
      * @param workPackageTitle          Title of the Work-Package referring to the Task.
@@ -278,7 +277,6 @@ public class TaskDAO {
 
     /**
      * Get the Task by its title.
-     * <br>This static method gets a Task only from its title (and the Project's one).
      *
      * @param username          Admin/Manager of the Project.
      * @param projectTitle      Title of the Project.
@@ -364,6 +362,46 @@ public class TaskDAO {
                 } else return null;
             }
         }
+    }
+
+    /**
+     * Get all the Tasks from a Work-Package.
+     *
+     * @param workPackage Work-package of reference.
+     *
+     * @return All Tasks for the Work-Package.
+     * @throws SQLException DB error
+     */
+    public static synchronized List<Task> getFromWorkPackage(WorkPackage workPackage) throws SQLException {
+        List<Task> tasks = new ArrayList<>();
+        if (workPackage == null) return tasks;
+        String query = "SELECT * " +
+                "FROM TASKS " +
+                "WHERE workPackageID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1,workPackage.getID());
+
+            // get the Tasks
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    tasks.add(new Task(
+                            resultSet.getInt("ID"),
+                            resultSet.getFloat("ORDERNUMBER"),
+                            resultSet.getString("TITLE"),
+                            resultSet.getInt("STARTINGMONTH"),
+                            resultSet.getInt("ENDINGMONTH"),
+                            workPackage.getProject(),
+                            workPackage
+                    ));
+                }
+            }
+        }
+        return tasks;
     }
 
     /**

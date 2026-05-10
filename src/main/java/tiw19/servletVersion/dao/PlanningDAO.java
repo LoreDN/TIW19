@@ -24,7 +24,6 @@ public class PlanningDAO {
 
     /**
      * Check if a Planning already exists.
-     * <br>This static method checks if a Planning already exists, by query for the couple (Task.ID, month).
      *
      * @param taskID    ID of the Task in the couple (Task, Month).
      * @param month     Month in the couple (Task, Month).
@@ -56,7 +55,6 @@ public class PlanningDAO {
 
     /**
      * Add a new Planning.
-     * <br>This static method adds a new Planning into the DB.
      *
      * @param taskID    ID of the Task in the couple (Task, Month).
      * @param month     Month in the couple (Task, Month).
@@ -178,6 +176,64 @@ public class PlanningDAO {
 
             // update the DB
             statement.executeUpdate();
+        }
+    }
+
+    /**
+     * Get the total Planned Hours for a Task.
+     *
+     * @param task Task to query.
+     *
+     * @return Total Planned Hours for the Task.
+     * @throws SQLException DB error
+     */
+    public static synchronized int getPlannedHours(Task task) throws SQLException {
+        if (task == null) return 0;
+        String query= "SELECT sum(plannedHours) " +
+                "FROM PLANNING " +
+                "WHERE taskID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, task.getID());
+
+            // get the Planned Hours
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("SUM(PLANNEDHOURS)");
+                else return 0;
+            }
+        }
+    }
+
+    /**
+     * Get the total Worked Hours for a Task.
+     *
+     * @param task Task to query.
+     *
+     * @return Total Worked Hours for the Task.
+     * @throws SQLException DB error
+     */
+    public static synchronized int getWorkedHours(Task task) throws SQLException {
+        if (task == null) return 0;
+        String query= "SELECT sum(workedHours) " +
+                "FROM PLANNING " +
+                "WHERE taskID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, task.getID());
+
+            // get the Planned Hours
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("SUM(WORKEDHOURS)");
+                else return 0;
+            }
         }
     }
 }

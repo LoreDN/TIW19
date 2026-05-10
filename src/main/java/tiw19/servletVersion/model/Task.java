@@ -1,5 +1,9 @@
 package tiw19.servletVersion.model;
 
+import tiw19.servletVersion.dao.PlanningDAO;
+
+import java.sql.SQLException;
+
 public class Task {
     private final int ID;
     private final float orderNumber;
@@ -91,5 +95,31 @@ public class Task {
      */
     public WorkPackage getWorkPackage() {
         return workPackage;
+    }
+
+    /**
+     * Get the Total Planned Hours for the Task.
+     *
+     * @return Total Planned Hours for the Task.
+     */
+    public int getPlannedHours() {
+        try {
+            return PlanningDAO.getPlannedHours(this);
+        } catch (SQLException exception) {
+            return -1;
+        }
+    }
+
+    /**
+     * Get the Total Worked Hours for the Task.
+     *
+     * @return Total Worked Hours for the Task.
+     */
+    public int getWorkedHours() {
+        try {
+            return PlanningDAO.getWorkedHours(this);
+        } catch (SQLException exception) {
+            return -1;
+        }
     }
 }

@@ -7,7 +7,7 @@
 <body>
     <h1>Home Page - Admin role</h1>
     <p th:text="'Welcome, ' + ${session.user.name} + ' ' + ${session.user.surname}"></p>
-    <p>Go to <a th:href="@{/projectVerification}">Project Verification</a> | <a th:href="@{/logout}">LOGOUT</a></p>
+    <p>Go to <a th:href="@{/homeAdmin/projectVerification}">Project Verification</a> | <a th:href="@{/logout}">LOGOUT</a></p>
 
     <!-- Project Creation form -->
     <h2>Create a new Project</h2>
