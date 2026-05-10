@@ -85,7 +85,7 @@ public class HomeManagerServlet extends HttpServlet {
 
         // load Projects to Assign
         try {
-            List<Project> toAssignProjects = ProjectDAO.getToBeAssignedProjects(((User) session.getAttribute("user")).getUsername());
+            List<Project> toAssignProjects = ProjectDAO.getCreatedProjects(((User) session.getAttribute("user")).getUsername());
             context.setVariable("toAssignProjects", toAssignProjects);
         } catch (SQLException exception) {
             String errorMessage = "[DB Error] : Error while getting Projects from DB!!!";

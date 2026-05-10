@@ -176,64 +176,32 @@ public class ProjectDAO {
     /**
      * Get all Project with status CREATED.
      *
-     * @param admin Admin of the Projects.
+     * @param username Admin/Manager of the Projects.
      *
      * @return Projects with Project.status == CREATED.
      * @throws SQLException DB error
      */
-    public static synchronized List<Project> getCreatedProjects(String admin) throws SQLException {
+    public static synchronized List<Project> getCreatedProjects(String username) throws SQLException {
         List<Project> projects = new ArrayList<>();
-        User user = UserDAO.getFromUsername(admin);
-        if (user == null || !user.isAdmin()) return projects;
-        String query = "SELECT ID, title, monthsNumber, status, admin " +
-                "FROM PROJECTS " +
-                "WHERE status = 'CREATED' AND admin = ?";
+        User user = UserDAO.getFromUsername(username);
+        if (user == null) return projects;
+        String query;
+        if (user.isAdmin()) {
+            query = "SELECT ID, title, monthsNumber, status, admin " +
+                    "FROM PROJECTS " +
+                    "WHERE status = 'CREATED' AND admin = ?";
+        } else if (user.isManager()) {
+            query = "SELECT ID, title, monthsNumber, status, admin " +
+                    "FROM PROJECTS " +
+                    "WHERE status = 'CREATED' AND manager = ?";
+        } else return projects;
 
         // connect to the DB
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set the parametric query
-            statement.setString(1, admin);
-
-            // get the Projects
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    projects.add(new Project(
-                            resultSet.getInt("ID"),
-                            resultSet.getString("TITLE"),
-                            resultSet.getInt("MONTHSNUMBER"),
-                            resultSet.getString("ADMIN"),
-                            resultSet.getString("STATUS")
-                    ));
-                }
-            }
-        }
-        return projects;
-    }
-
-    /**
-     * Get all Project to be Assigned.
-     *
-     * @param manager Manager of the Projects.
-     *
-     * @return Projects with Project.status == CREATED.
-     * @throws SQLException DB error
-     */
-    public static synchronized List<Project> getToBeAssignedProjects(String manager) throws SQLException {
-        List<Project> projects = new ArrayList<>();
-        User user = UserDAO.getFromUsername(manager);
-        if (user == null || !user.isManager()) return projects;
-        String query = "SELECT ID, title, monthsNumber, status, admin " +
-                "FROM PROJECTS " +
-                "WHERE status = 'CREATED' AND manager = ?";
-
-        // connect to the DB
-        try (Connection connection = DBConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-
-            // set the parametric query
-            statement.setString(1, manager);
+            statement.setString(1, username);
 
             // get the Projects
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -354,9 +322,48 @@ public class ProjectDAO {
     /**
      * Get all the Projects with status ASSIGNED.
      *
-     * @param collaborator Collaborator to the Tasks (and the Projects).
+     * @param manager Manager of the Projects.
      *
      * @return Projects with Project.status == ASSIGNED.
+     * @throws SQLException DB error
+     */
+    public static synchronized List<Project> getManagedProjects(String manager) throws SQLException {
+        List<Project> projects = new ArrayList<>();
+        User user = UserDAO.getFromUsername(manager);
+        if (user == null || !user.isManager()) return projects;
+        String query = "SELECT ID, title, monthsNumber, status, admin " +
+                "FROM PROJECTS " +
+                "WHERE status = 'ASSIGNED' AND manager = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set parametric query
+            statement.setString(1, manager);
+
+            // get the Projects
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    projects.add(new Project(
+                            resultSet.getInt("ID"),
+                            resultSet.getString("TITLE"),
+                            Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
+                            resultSet.getString("ADMIN"),
+                            resultSet.getString("STATUS")
+                    ));
+                }
+            }
+        }
+        return projects;
+    }
+
+    /**
+     * Get all the Projects assigned to a Collaborator.
+     *
+     * @param collaborator Collaborator to the Tasks (and the Projects).
+     *
+     * @return Projects assigned to the Collaborator.
      * @throws SQLException DB error
      */
     public static synchronized List<Project> getAssignedProjects(String collaborator) throws SQLException {
@@ -378,7 +385,7 @@ public class ProjectDAO {
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             // set parametric query
-            statement.setInt(1, UserDAO.getID(collaborator));
+            statement.setInt(1, user.getID());
 
             // get the Projects
             try (ResultSet resultSet = statement.executeQuery()) {

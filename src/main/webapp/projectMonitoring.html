@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Manager - Project Monitoring</title>
+
+    <!-- table stylesheet -->
+    <style>
+        table { border-collapse: collapse; }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            min-width: 50px;
+            max-width: 100px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Project Monitoring</h1>
+    <p>Go back to <a th:href="@{/homeManager}">Home Page</a> | <a th:href="@{/logout}">LOGOUT</a></p>
+
+    <!-- Project list -->
+    <h2>Your assigned Projects</h2>
+    <p th:if="${projectsErrorMessage}" th:text="${projectsErrorMessage}" style="color:red;"></p>
+    <p th:if="${projects == null or #lists.isEmpty(projects)}">You currently have no Project with status "ASSIGNED" which you are Manager of!</p>
+    <ul th:unless="${projects == null or #lists.isEmpty(projects)}">
+        <li th:each="p : ${projects}">
+            <a th:href="@{/homeManager/projectMonitoring(projectID=${p.getID()})}"
+               th:text="${'Admin: ' + p.getAdmin() + ' | Project Title: ' + p.getTitle() + ' | Months: ' + p.getMonthsNumber()}">
+            </a>
+        </li>
+    </ul>
+
+    <!-- Project Stats -->
+    <div th:if="${selectedProject != null}">
+        <h2 th:text="'Project ' + ${selectedProject.getTitle()}"></h2>
+        <p th:if="${monitoringErrorMessage}" th:text="${monitoringErrorMessage}" style="color:red;"></p>
+
+        <!-- Tasks Stats table -->
+        <table>
+            <thead>
+            <tr>
+                <th>WP</th>
+                <th>Task</th>
+                <th:block th:each="m : ${months}">
+                    <th th:text="'M' + ${m} + ' Planned Hours'"></th>
+                    <th th:text="'M' + ${m} + ' Worked Hours'"></th>
+                </th:block>
+            </tr>
+            </thead>
+            <tbody>
+            <th:block th:each="wp : ${tableData.keySet()}">
+                <tr th:each="t : ${tableData.get(wp).keySet()}">
+                    <td th:text="'WP ' + ${wp.getOrderNumber()}"></td>
+                    <td th:text="'T ' + ${t.getOrderNumber()}"></td>
+                    <th:block th:each="m : ${months}">
+                        <td th:text="${tableData.get(wp).get(t).get(m) != null ? tableData.get(wp).get(t).get(m).getPlannedHours() : '/'}"></td>
+                        <td th:text="${tableData.get(wp).get(t).get(m) != null ? tableData.get(wp).get(t).get(m).getWorkedHours() : '/'}"></td>
+                    </th:block>
+                </tr>
+            </th:block>
+            </tbody>
+        </table>
+
+        <!-- Project Conclusion form -->
+        <div th:if="${canBeConcluded}">
+            <form th:action="@{/homeManager/projectMonitoring/concludeProject}" method="post">
+                <input type="hidden" name="projectID" th:value="${selectedProject.getID()}"/>
+                <button type="submit">Set Project to CONCLUDED status</button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

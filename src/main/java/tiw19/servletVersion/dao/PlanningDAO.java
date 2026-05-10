@@ -150,6 +150,42 @@ public class PlanningDAO {
     }
 
     /**
+     * Get the Planning for a couple (Task, Month).
+     *
+     * @param taskID ID of the Task in the couple (Task, Month).
+     * @param month Month in the couple (Task, Month).
+     *
+     * @return Planning of the couple (Task, Month).
+     * @throws SQLException DB error
+     */
+    public static synchronized Planning getFromCouple(int taskID, int month) throws SQLException {
+        String query = "SELECT * " +
+                "FROM PLANNING " +
+                "WHERE taskID = ? AND month = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, taskID);
+            statement.setInt(2, month);
+
+            // get the Plannings
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                     return new Planning(
+                            resultSet.getInt("TASKID"),
+                            resultSet.getInt("MONTH"),
+                            resultSet.getInt("PLANNEDHOURS"),
+                            resultSet.getInt("WORKEDHOURS")
+                    );
+                } else return null;
+            }
+        }
+    }
+
+    /**
      * Update the Total Worked Hours for the couple (Task, Month).
      *
      * @param taskID    ID of the Task in the couple (Task, Month).
