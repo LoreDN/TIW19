@@ -272,4 +272,32 @@ public class PlanningDAO {
             }
         }
     }
+
+    /**
+     * Check if a Task is completed.
+     *
+     * @param taskID ID of the Task.
+     *
+     * @return True if Task is completed, false otherwise.
+     * @throws SQLException DB error
+     */
+    public static synchronized boolean isCompleted(int taskID) throws SQLException {
+        String query = "SELECT count(*) " +
+                "FROM PLANNING " +
+                "WHERE taskID = ? AND plannedHours < workedHours";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, taskID);
+
+            // check if Task is concluded
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) return resultSet.getInt("COUNT(*)") == 0;
+                else return false;
+            }
+        }
+    }
 }

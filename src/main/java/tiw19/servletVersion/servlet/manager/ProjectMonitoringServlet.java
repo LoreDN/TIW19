@@ -32,6 +32,9 @@ import java.util.*;
  */
 @WebServlet("/homeManager/projectMonitoring")
 public class ProjectMonitoringServlet extends HttpServlet {
+    private static final String[] variables = {
+            "conclusionErrorMessage", "conclusionSuccessMessage",
+    };
 
     /**
      * HTTP GET request handler.
@@ -60,6 +63,14 @@ public class ProjectMonitoringServlet extends HttpServlet {
         JakartaServletWebApplication app = JakartaServletWebApplication.buildApplication(getServletContext());
         WebContext context = new WebContext(app.buildExchange(request, response));
         response.setContentType("text/html;charset=UTF-8");
+
+        // get Session variables
+        for (String variable : variables) {
+            if (session.getAttribute(variable) != null) {
+                context.setVariable(variable, session.getAttribute(variable));
+                session.removeAttribute(variable);
+            }
+        }
 
         // load Projects
         try {

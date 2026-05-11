@@ -33,6 +33,7 @@
     </ul>
 
     <!-- Project Stats -->
+    <p th:if="${conclusionSuccessMessage}" th:text="${conclusionSuccessMessage}" style="color:green;"></p>
     <div th:if="${selectedProject != null}">
         <h2 th:text="'Project ' + ${selectedProject.getTitle()}"></h2>
         <p th:if="${monitoringErrorMessage}" th:text="${monitoringErrorMessage}" style="color:red;"></p>
@@ -65,6 +66,7 @@
 
         <!-- Project Conclusion form -->
         <div th:if="${canBeConcluded}">
+            <p th:if="${conclusionErrorMessage}" th:text="${conclusionErrorMessage}" style="color:red;"></p>
             <form th:action="@{/homeManager/projectMonitoring/concludeProject}" method="post">
                 <input type="hidden" name="projectID" th:value="${selectedProject.getID()}"/>
                 <button type="submit">Set Project to CONCLUDED status</button>

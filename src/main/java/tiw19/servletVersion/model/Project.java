@@ -13,6 +13,7 @@ public class Project {
     private final String title;
     private final int monthsNumber;
     private final String admin;
+    private final String manager;
     private final String status; // CREATED, ASSIGNED, CONCLUDED
 
     /**
@@ -21,14 +22,16 @@ public class Project {
      * @param ID            ID of the Project;
      * @param title         Title of the Project.
      * @param monthsNumber  Duration (in months) of the Project.
-     * @param admin         Amin of the project.
+     * @param admin         Admin of the project.
+     * @param manager       Manager of the project.
      * @param status        Status of the Project (CREATED vs ASSIGNED vs CONCLUDED).
      */
-    public Project(int ID, String title, int monthsNumber, String admin, String status) {
+    public Project(int ID, String title, int monthsNumber, String admin, String manager, String status) {
         this.ID = ID;
         this.title = title;
         this.monthsNumber = monthsNumber;
         this.admin = admin;
+        this.manager = manager;
         this.status = status;
     }
 
@@ -66,6 +69,15 @@ public class Project {
      */
     public String getAdmin() {
         return admin;
+    }
+
+    /**
+     * Getter for the attribute manager.
+     *
+     * @return Project.manager
+     */
+    public String getManager() {
+        return manager;
     }
 
     /**

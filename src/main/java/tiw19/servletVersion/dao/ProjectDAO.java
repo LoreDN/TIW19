@@ -106,11 +106,11 @@ public class ProjectDAO {
         User user = UserDAO.getFromUsername(username);
         if (user == null) return null;
         else if (user.isAdmin()) {
-            query = "SELECT ID, title, monthsNumber, status, admin " +
+            query = "SELECT * " +
                     "FROM PROJECTS " +
                     "WHERE title = ? AND admin = ?";
         } else if (user.isManager()) {
-            query = "SELECT title, monthsNumber, status, admin " +
+            query = "SELECT * " +
                     "FROM PROJECTS " +
                     "WHERE title = ? AND manager = ?";
         } else return null;
@@ -131,6 +131,7 @@ public class ProjectDAO {
                             resultSet.getString("TITLE"),
                             resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
+                            resultSet.getString("MANAGER"),
                             resultSet.getString("STATUS")
                     );
                 } else return null;
@@ -147,7 +148,7 @@ public class ProjectDAO {
      * @throws SQLException DB error
      */
     public static synchronized Project getFromID(int ID) throws SQLException {
-        String query = "SELECT title, monthsNumber, status, admin " +
+        String query = "SELECT * " +
                 "FROM PROJECTS " +
                 "WHERE ID = ?";
 
@@ -166,6 +167,7 @@ public class ProjectDAO {
                             resultSet.getString("TITLE"),
                             resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
+                            resultSet.getString("MANAGER"),
                             resultSet.getString("STATUS")
                     );
                 } else return null;
@@ -187,11 +189,11 @@ public class ProjectDAO {
         if (user == null) return projects;
         String query;
         if (user.isAdmin()) {
-            query = "SELECT ID, title, monthsNumber, status, admin " +
+            query = "SELECT * " +
                     "FROM PROJECTS " +
                     "WHERE status = 'CREATED' AND admin = ?";
         } else if (user.isManager()) {
-            query = "SELECT ID, title, monthsNumber, status, admin " +
+            query = "SELECT * " +
                     "FROM PROJECTS " +
                     "WHERE status = 'CREATED' AND manager = ?";
         } else return projects;
@@ -211,6 +213,7 @@ public class ProjectDAO {
                             resultSet.getString("TITLE"),
                             resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
+                            resultSet.getString("MANAGER"),
                             resultSet.getString("STATUS")
                     ));
                 }
@@ -225,7 +228,7 @@ public class ProjectDAO {
      * @param manager       Manager of the project.
      * @param projectTitle  Title of the Project.
      *
-     * @return true if a Project can be assigned, false otherwise.
+     * @return True if a Project can be assigned, false otherwise.
      * @throws SQLException DB error
      */
     public static synchronized boolean canBeAssigned(String manager, String projectTitle) throws SQLException {
@@ -331,7 +334,7 @@ public class ProjectDAO {
         List<Project> projects = new ArrayList<>();
         User user = UserDAO.getFromUsername(manager);
         if (user == null || !user.isManager()) return projects;
-        String query = "SELECT ID, title, monthsNumber, status, admin " +
+        String query = "SELECT * " +
                 "FROM PROJECTS " +
                 "WHERE status = 'ASSIGNED' AND manager = ?";
 
@@ -348,8 +351,9 @@ public class ProjectDAO {
                     projects.add(new Project(
                             resultSet.getInt("ID"),
                             resultSet.getString("TITLE"),
-                            Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
+                            resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
+                            resultSet.getString("MANAGER"),
                             resultSet.getString("STATUS")
                     ));
                 }
@@ -370,7 +374,7 @@ public class ProjectDAO {
         List<Project> projects = new ArrayList<>();
         User user = UserDAO.getFromUsername(collaborator);
         if (user == null || !user.isCollaborator()) return projects;
-        String query = "SELECT P.ID, P.title, P.monthsNumber, P.admin, P.status " +
+        String query = "SELECT * " +
                 "FROM PROJECTS AS P " +
                 "WHERE P.status = 'ASSIGNED' AND EXISTS (" +
                     "SELECT 1 " +
@@ -395,12 +399,59 @@ public class ProjectDAO {
                             resultSet.getString("TITLE"),
                             Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
                             resultSet.getString("ADMIN"),
+                            resultSet.getString("MANAGER"),
                             resultSet.getString("STATUS")
                     ));
                 }
             }
         }
         return projects;
+    }
+
+    /**
+     * Check if a Project can be concluded.
+     *
+     * @param projectID ID of the Project.
+     *
+     * @return True if a Project can be concluded, false otherwise.
+     * @throws SQLException DB error
+     */
+    public static synchronized boolean canBeConcluded(int projectID) throws SQLException {
+        Project project = getFromID(projectID);
+        if (project == null || !project.isAssigned()) return false;
+
+        // check Tasks
+        List<Integer> tasksID = TaskDAO.getIDs(project.getManager(), project.getTitle());
+        for (Integer taskID : tasksID) {
+            if (!PlanningDAO.isCompleted(taskID)) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Set Project status to CONCLUDED.
+     *
+     * @param projectID ID of the Project.
+     *
+     * @return True if conclusion was successfully, false otherwise.
+     * @throws SQLException DB error
+     */
+    public static synchronized boolean setToConcluded(int projectID) throws SQLException {
+        String updateConclusion = "UPDATE PROJECTS " +
+                "SET status = 'CONCLUDED' " +
+                "WHERE ID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(updateConclusion)) {
+
+            // set the parametric query
+            statement.setInt(1, projectID);
+
+            // update the DB
+            statement.executeUpdate();
+        }
+        return true;
     }
 
     /**
@@ -416,9 +467,9 @@ public class ProjectDAO {
         Map<Project, Map<WorkPackage, List<Task>>> projects = new LinkedHashMap<>();
         User user = UserDAO.getFromUsername(admin);
         if (user == null || !user.isAdmin()) return projects;
-        String query = "SELECT P.ID, P.title, P.monthsNumber, P.admin, P.status " +
-                "FROM PROJECTS AS P " +
-                "WHERE P.admin = ? AND status = ?";
+        String query = "SELECT * " +
+                "FROM PROJECTS " +
+                "WHERE admin = ? AND status = ?";
 
         // connect to the DB
         try (Connection connection = DBConnection.getConnection();
@@ -436,6 +487,7 @@ public class ProjectDAO {
                             resultSet.getString("TITLE"),
                             resultSet.getInt("MONTHSNUMBER"),
                             resultSet.getString("ADMIN"),
+                            resultSet.getString("MANAGER"),
                             resultSet.getString("STATUS")
                     );
                     projects.put(project, WorkPackageDAO.getFromProject(project));
