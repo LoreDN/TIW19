@@ -409,6 +409,54 @@ public class ProjectDAO {
     }
 
     /**
+     * Get all the Projects of a Manager assigned to a Collaborator.
+     *
+     * @param manager       Manager of the Projects.
+     * @param collaborator  Collaborator to the Tasks (and the Projects).
+     *
+     * @return Projects of the Manager assigned to the Collaborator.
+     * @throws SQLException DB error
+     */
+    public static synchronized List<Project> getCollaboratorProjects(String manager, String collaborator) throws SQLException {
+        List<Project> projects = new ArrayList<>();
+        User managerUser = UserDAO.getFromUsername(manager);
+        User collaboratorUser = UserDAO.getFromUsername(collaborator);
+        if (managerUser == null || !managerUser.isManager() ||
+                collaboratorUser == null || !collaboratorUser.isCollaborator()
+        ) return projects;
+        String query = "SELECT DISTINCT P.ID, P.title, P.monthsNumber, P.admin, P.manager, P.status " +
+                "FROM PROJECTS AS P " +
+                "JOIN WORK_PACKAGES AS WP ON P.ID = WP.projectID " +
+                "JOIN TASKS AS T ON T.workPackageID = WP.ID " +
+                "JOIN COLLABORATORS AS C ON C.taskID = T.ID " +
+                "WHERE P.manager = ? AND P.status = 'ASSIGNED' AND C.userID = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set parametric query
+            statement.setString(1, manager);
+            statement.setInt(2, collaboratorUser.getID());
+
+            // get the Projects
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    projects.add(new Project(
+                            resultSet.getInt("ID"),
+                            resultSet.getString("TITLE"),
+                            Integer.parseInt(resultSet.getString("MONTHSNUMBER")),
+                            resultSet.getString("ADMIN"),
+                            resultSet.getString("MANAGER"),
+                            resultSet.getString("STATUS")
+                    ));
+                }
+            }
+        }
+        return projects;
+    }
+
+    /**
      * Check if a Project can be concluded.
      *
      * @param projectID ID of the Project.

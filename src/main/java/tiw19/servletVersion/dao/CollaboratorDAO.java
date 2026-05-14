@@ -1,9 +1,7 @@
 package tiw19.servletVersion.dao;
 
 import tiw19.servletVersion.db.DBConnection;
-import tiw19.servletVersion.model.Task;
-import tiw19.servletVersion.model.User;
-import tiw19.servletVersion.model.WorkPackage;
+import tiw19.servletVersion.model.*;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -82,6 +80,44 @@ public class CollaboratorDAO {
 
             // update DB
             statement.executeUpdate();
+        }
+    }
+
+    /**
+     * Get the Planning for a triplet (Task, Month, Collaborator).
+     *
+     * @param userID    ID of the Collaborator in the triplet (Task, Month, Collaborator).
+     * @param taskID    ID of the Task in the triplet (Task, Month, Collaborator).
+     * @param month     Month in the triplet (Task, Month, Collaborator).
+     *
+     * @return Planning of the triplet (Task, Month, Collaborator).
+     * @throws SQLException DB error
+     */
+    public static synchronized Collaborator getFromTriplet(int userID, int taskID, int month) throws SQLException {
+        String query = "SELECT * " +
+                "FROM COLLABORATORS " +
+                "WHERE userID = ? AND taskID = ? AND month = ?";
+
+        // connect to the DB
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            // set the parametric query
+            statement.setInt(1, userID);
+            statement.setInt(2, taskID);
+            statement.setInt(3, month);
+
+            // get the Plannings
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return new Collaborator(
+                            resultSet.getInt("USERID"),
+                            resultSet.getInt("TASKID"),
+                            resultSet.getInt("MONTH"),
+                            resultSet.getInt("WORKEDHOURS")
+                    );
+                } else return null;
+            }
         }
     }
 

@@ -39,14 +39,19 @@ public class Planning {
     }
 
     /**
-     * Getter for the attribute plannedHours.
+     * Getter for the attribute month.
      *
-     * @return Planning.plannedHours
+     * @return Planning.month
      */
     public int getMonth() {
         return month;
     }
 
+    /**
+     * Getter for the attribute plannedHours.
+     *
+     * @return Planning.plannedHours
+     */
     public int getPlannedHours() {
         return plannedHours;
     }
