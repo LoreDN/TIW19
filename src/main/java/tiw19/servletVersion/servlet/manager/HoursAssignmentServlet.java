@@ -57,8 +57,8 @@ public class HoursAssignmentServlet extends HttpServlet {
         // check user
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("user") == null || !((User) session.getAttribute("user")).isManager()) {
-            // fallback to "/login"
-            response.sendRedirect(request.getContextPath() + "/login");
+            // fallback to "/logout"
+            response.sendRedirect(request.getContextPath() + "/logout");
             return;
         }
 
