@@ -99,9 +99,9 @@ public class LoginServlet extends HttpServlet {
 
                 // role redirect
                 if (user.isAdmin()) response.sendRedirect(request.getContextPath() + "/homeAdmin");
+                else if (user.isManager() && user.isCollaborator()) response.sendRedirect(request.getContextPath() + "/login/chooseTechnicalRole");
                 else if (user.isManager()) response.sendRedirect(request.getContextPath() + "/homeManager");
                 else if (user.isCollaborator()) response.sendRedirect(request.getContextPath() + "/homeCollaborator");
-                else response.sendRedirect(request.getContextPath() + "/chooseTechnicalRole");
             }
         } catch (SQLException exception) {
             reloadWebPage(
