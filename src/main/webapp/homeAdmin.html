@@ -3,83 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <title>Home Page - Admin role</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}"/>
+    <link rel="stylesheet" th:href="@{/css/home.css}"/>
 </head>
 <body>
-    <h1>Home Page - Admin role</h1>
-    <p th:text="'Welcome, ' + ${session.user.name} + ' ' + ${session.user.surname}"></p>
-    <p>Go to <a th:href="@{/homeAdmin/projectVerification}">Project Verification</a> | <a th:href="@{/logout}">LOGOUT</a></p>
+    <div class="page-wrapper">
+        <h1>Home Page - Admin role</h1>
+        <p th:text="'Welcome, ' + ${session.user.name} + ' ' + ${session.user.surname}"></p>
+        <p class="nav-bar">
+            Go to <a th:href="@{/homeAdmin/projectVerification}">Project Verification</a> |
+            <a th:href="@{/logout}">LOGOUT</a>
+        </p>
 
-    <!-- Project Creation form -->
-    <h2>Create a new Project</h2>
-    <p th:if="${projectErrorMessage}" th:text="${projectErrorMessage}" style="color:red;"></p>
-    <p th:if="${projectSuccessMessage}" th:text="${projectSuccessMessage}" style="color:green;"></p>
-    <form th:action="@{/homeAdmin/createProject}" method="post">
-        <label for="ProjectTitle">Title</label>
-        <input type="text" id="ProjectTitle" name="title" th:value="${projectTitle}" required /><br/>
+        <!-- Project Creation form -->
+        <h2>Create a new Project</h2>
+        <p th:if="${projectErrorMessage}" th:text="${projectErrorMessage}" class="msg-error"></p>
+        <p th:if="${projectSuccessMessage}" th:text="${projectSuccessMessage}" class="msg-success"></p>
+        <form th:action="@{/homeAdmin/createProject}" method="post" class="home-form">
+            <div class="form-group">
+                <label for="ProjectTitle">Title</label>
+                <input type="text" id="ProjectTitle" name="title" th:value="${projectTitle}" required />
+            </div>
 
-        <label for="ProjectMonthsDuration">Duration (in months):</label>
-        <input type="number" id="ProjectMonthsDuration" name="duration" th:value="${projectDuration}" min="1" required /><br/>
+            <div class="form-group">
+                <label for="ProjectMonthsDuration">Duration (in months):</label>
+                <input type="number" id="ProjectMonthsDuration" name="duration" th:value="${projectDuration}" min="1" required />
+            </div>
 
-        <label for="ProjectManager">Manager: </label>
-        <input type="text" id="ProjectManager" name="manager" th:value="${projectManager}" required /><br/>
+            <div class="form-group">
+                <label for="ProjectManager">Manager: </label>
+                <input type="text" id="ProjectManager" name="manager" th:value="${projectManager}" required />
+            </div>
 
-        <button type="submit">Save Project</button>
-    </form>
+            <button type="submit">Save Project</button>
+        </form>
 
-    <!-- WorkPackage Creation form -->
-    <h2>Create a new Work-Package for an existing Project</h2>
-    <p th:if="${workPackageErrorMessage}" th:text="${workPackageErrorMessage}" style="color:red;"></p>
-    <p th:if="${workPackageSuccessMessage}" th:text="${workPackageSuccessMessage}" style="color:green;"></p>
-    <form th:action="@{/homeAdmin/createWorkPackage}" method="post">
-        <!-- Project reference -->
-        <label for="WorkPackageProject">Reference Project title:</label>
-        <select id="WorkPackageProject" name="projectTitle" required>
-            <option th:each="p : ${createdProjects}"
-                    th:value="${p.getTitle()}"
-                    th:text="${p.getTitle() + ' | Months: ' + p.getMonthsNumber()}"
-                    th:selected="${p.getTitle() == workPackageProjectTitle}">
-            </option>
-        </select><br/>
+        <!-- WorkPackage Creation form -->
+        <h2>Create a new Work-Package for an existing Project</h2>
+        <p th:if="${workPackageErrorMessage}" th:text="${workPackageErrorMessage}" class="msg-error"></p>
+        <p th:if="${workPackageSuccessMessage}" th:text="${workPackageSuccessMessage}" class="msg-success"></p>
+        <form th:action="@{/homeAdmin/createWorkPackage}" method="post" class="home-form">
+            <!-- Project reference -->
+            <div class="form-group">
+                <label for="WorkPackageProject">Reference Project title:</label>
+                <select id="WorkPackageProject" name="projectTitle" required>
+                    <option th:each="p : ${createdProjects}"
+                            th:value="${p.getTitle()}"
+                            th:text="${p.getTitle() + ' | Months: ' + p.getMonthsNumber()}"
+                            th:selected="${p.getTitle() == workPackageProjectTitle}">
+                    </option>
+                </select>
+            </div>
 
-        <!-- Work Package parameters -->
-        <label for="WorkPackageTitle">Title:</label>
-        <input type="text" id="WorkPackageTitle" name="title" th:value="${workPackageTitle}" required /><br/>
+            <!-- Work Package parameters -->
+            <div class="form-group">
+                <label for="WorkPackageTitle">Title:</label>
+                <input type="text" id="WorkPackageTitle" name="title" th:value="${workPackageTitle}" required />
+            </div>
 
-        <label for="WorkPackageStartingMonth">Starting Month (according to the reference Project):</label>
-        <input type="number" id="WorkPackageStartingMonth" name="startingMonth" th:value="${workPackageStartingMonth}" min="1" required /><br/>
+            <div class="form-group">
+                <label for="WorkPackageStartingMonth">Starting Month (according to the reference Project):</label>
+                <input type="number" id="WorkPackageStartingMonth" name="startingMonth" th:value="${workPackageStartingMonth}" min="1" required />
+            </div>
 
-        <label for="WorkPackageEndingMonth">Ending Month (according to the reference Project):</label>
-        <input type="number" id="WorkPackageEndingMonth" name="endingMonth" th:value="${workPackageEndingMonth}" min="1" required /><br/>
+            <div class="form-group">
+                <label for="WorkPackageEndingMonth">Ending Month (according to the reference Project):</label>
+                <input type="number" id="WorkPackageEndingMonth" name="endingMonth" th:value="${workPackageEndingMonth}" min="1" required />
+            </div>
 
-        <button type="submit">Save Work Package</button>
-    </form>
+            <button type="submit">Save Work Package</button>
+        </form>
 
-    <!-- Task Creation form -->
-    <h2>Create a new Task for an existing Work-Package</h2>
-    <p th:if="${taskErrorMessage}" th:text="${taskErrorMessage}" style="color:red;"></p>
-    <p th:if="${taskSuccessMessage}" th:text="${taskSuccessMessage}" style="color:green;"></p>
-    <form th:action="@{/homeAdmin/createTask}" method="post">
-        <!-- Project reference -->
-        <label for="TaskWorkPackage">Reference Work-Package title:</label>
-        <select id="TaskWorkPackage" name="workPackageTitles" required>
-            <option th:each="wp : ${workPackages}"
-                    th:value="${wp.getProject().getTitle() + '###' + wp.getTitle()}"
-                    th:text="${wp.getProject().getTitle()} + ' - ' + ${wp.getTitle() + ' | M' + wp.getStartingMonth() + ' -> M' + wp.getEndingMonth()}"
-                    th:selected="${wp.getProject().getTitle() + '###' + wp.getTitle() == taskWorkPackageTitles}">
-            </option>
-        </select><br/>
+        <!-- Task Creation form -->
+        <h2>Create a new Task for an existing Work-Package</h2>
+        <p th:if="${taskErrorMessage}" th:text="${taskErrorMessage}" class="msg-error"></p>
+        <p th:if="${taskSuccessMessage}" th:text="${taskSuccessMessage}" class="msg-success"></p>
+        <form th:action="@{/homeAdmin/createTask}" method="post" class="home-form">
+            <!-- Project reference -->
+            <div class="form-group">
+                <label for="TaskWorkPackage">Reference Work-Package title:</label>
+                <select id="TaskWorkPackage" name="workPackageTitles" required>
+                    <option th:each="wp : ${workPackages}"
+                            th:value="${wp.getProject().getTitle() + '###' + wp.getTitle()}"
+                            th:text="${wp.getProject().getTitle()} + ' - ' + ${wp.getTitle() + ' | M' + wp.getStartingMonth() + ' -> M' + wp.getEndingMonth()}"
+                            th:selected="${wp.getProject().getTitle() + '###' + wp.getTitle() == taskWorkPackageTitles}">
+                    </option>
+                </select>
+            </div>
 
-        <!-- Task parameters -->
-        <label for="TaskTitle">Title:</label>
-        <input type="text" id="TaskTitle" name="title" th:value="${taskTitle}" required /><br/>
+            <!-- Task parameters -->
+            <div class="form-group">
+                <label for="TaskTitle">Title:</label>
+                <input type="text" id="TaskTitle" name="title" th:value="${taskTitle}" required />
+            </div>
 
-        <label for="TaskStartingMonth">Starting Month (according to the reference Work-Package):</label>
-        <input type="number" id="TaskStartingMonth" name="startingMonth" th:value="${taskStartingMonth}" min="1" required /><br/>
+            <div class="form-group">
+                <label for="TaskStartingMonth">Starting Month (according to the reference Work-Package):</label>
+                <input type="number" id="TaskStartingMonth" name="startingMonth" th:value="${taskStartingMonth}" min="1" required />
+            </div>
 
-        <label for="TaskEndingMonth">Ending Month (according to the reference Work-Package):</label>
-        <input type="number" id="TaskEndingMonth" name="endingMonth" th:value="${taskEndingMonth}" min="1" required /><br/>
+            <div class="form-group">
+                <label for="TaskEndingMonth">Ending Month (according to the reference Work-Package):</label>
+                <input type="number" id="TaskEndingMonth" name="endingMonth" th:value="${taskEndingMonth}" min="1" required />
+            </div>
 
-        <button type="submit">Save Task</button>
-    </form>
+            <button type="submit">Save Task</button>
+        </form>
+    </div>
 </body>
 </html>

@@ -14,6 +14,11 @@ body {
     padding: 2rem 1rem;
 }
 
+.page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
 
 /* ========== HEADERS ========== */
 h1 {
@@ -54,6 +59,17 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+
+/* ========== LISTS ========== */
+ul, ol {
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+li {
+    margin-bottom: 0.25rem;
 }
 
 
