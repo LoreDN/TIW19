@@ -3,70 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>Manager - Collaborator Monitoring</title>
-
-    <!-- table stylesheet -->
-    <style>
-        table { border-collapse: collapse; }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            min-width: 50px;
-            max-width: 100px;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/global.css}"/>
+    <link rel="stylesheet" th:href="@{/css/monitoring.css}"/>
 </head>
 <body>
-    <h1>Collaborators Monitoring</h1>
-    <p>Go back to <a th:href="@{/homeManager}">Home Page</a> | <a th:href="@{/logout}">LOGOUT</a></p>
+    <div class="page-wrapper">
+        <h1>Collaborators Monitoring</h1>
+        <p class="nav-bar">
+            Go back to <a th:href="@{/homeManager}">Home Page</a> |
+            <a th:href="@{/logout}">LOGOUT</a>
+        </p>
 
-    <!-- Collaborators list -->
-    <h2>Collaborators to at least one of your assigned Projects</h2>
-    <p th:if="${collaboratorsErrorMessage}" th:text="${collaboratorsErrorMessage}" style="color:red;"></p>
-    <p th:if="${collaborators == null or #lists.isEmpty(collaborators)}">You currently have no Collaborator assigned to at least one Project which you are Manager of!</p>
-    <ul th:unless="${collaborators == null or #lists.isEmpty(collaborators)}">
-        <li th:each="c : ${collaborators}">
-            <a th:href="@{/homeManager/collaboratorsMonitoring(collaboratorID=${c.getID()})}"
-               th:text="${'Collaborator: ' + c.getUsername() + ' | Full name: ' + c.getName() + ' ' + c.getSurname()}">
-            </a>
-        </li>
-    </ul>
+        <!-- Collaborators list -->
+        <h2>Collaborators to at least one of your assigned Projects</h2>
+        <p th:if="${collaboratorsErrorMessage}" th:text="${collaboratorsErrorMessage}" class="msg-error"></p>
+        <p th:if="${collaborators == null or #lists.isEmpty(collaborators)}">You currently have no Collaborator assigned to at least one Project which you are Manager of!</p>
+        <ul th:unless="${collaborators == null or #lists.isEmpty(collaborators)}">
+            <li th:each="c : ${collaborators}">
+                <a th:href="@{/homeManager/collaboratorsMonitoring(collaboratorID=${c.getID()})}"
+                   th:text="${'Collaborator: ' + c.getUsername() + ' | Full name: ' + c.getName() + ' ' + c.getSurname()}">
+                </a>
+            </li>
+        </ul>
 
-    <!-- Collaborator Stats -->
-    <p th:if="${monitoringErrorMessage}" th:text="${monitoringErrorMessage}" style="color:red;"></p>
-    <div th:if="${selectedCollaborator != null}">
-        <h2 th:text="'Collaborator ' + ${selectedCollaborator.getUsername()}"></h2>
+        <!-- Collaborator Stats -->
+        <p th:if="${monitoringErrorMessage}" th:text="${monitoringErrorMessage}" class="msg-error"></p>
+        <div th:if="${selectedCollaborator != null}">
+            <h2 th:text="'Collaborator ' + ${selectedCollaborator.getUsername()}"></h2>
 
-        <!-- Projects Stats table -->
-        <div th:each="p, iterStat : ${tableData.keySet()}" style="margin-bottom:30px">
-            <table>
-                <thead>
-                <tr>
-                    <th th:colspan="${2 + p.getMonthsNumber()}"
-                        th:text="'Project N' + ${iterStat.index + 1} + ': ' + ${p.getTitle()}"></th>
-                </tr>
-                <tr>
-                    <th>WP</th>
-                    <th>Task</th>
-                    <th:block th:each="m : ${months.get(p)}">
-                        <th th:text="'M' + ${m} + ' Worked Hours'"></th>
-                    </th:block>
-                </tr>
-                </thead>
-                <tbody>
-                <th:block th:each="wp : ${tableData.get(p).keySet()}">
-                    <tr th:each="t : ${tableData.get(p).get(wp).keySet()}">
-                        <td th:text="'WP ' + ${wp.getOrderNumber()}"></td>
-                        <td th:text="'T ' + ${t.getOrderNumber()}"></td>
+            <!-- Projects Stats table -->
+            <div th:each="p, iterStat : ${tableData.keySet()}" class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th th:colspan="${2 + p.getMonthsNumber()}"
+                            th:text="'Project N' + ${iterStat.index + 1} + ': ' + ${p.getTitle()}"></th>
+                    </tr>
+                    <tr>
+                        <th>WP</th>
+                        <th>Task</th>
                         <th:block th:each="m : ${months.get(p)}">
-                            <td th:text="${tableData.get(p).get(wp).get(t).get(m) != null ? tableData.get(p).get(wp).get(t).get(m).getWorkedHours() : '/'}"></td>
+                            <th th:text="'M' + ${m} + ' Worked Hours'"></th>
                         </th:block>
                     </tr>
-                </th:block>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    <th:block th:each="wp : ${tableData.get(p).keySet()}">
+                        <tr th:each="t : ${tableData.get(p).get(wp).keySet()}">
+                            <td th:text="'WP ' + ${wp.getOrderNumber()}"></td>
+                            <td th:text="'T ' + ${t.getOrderNumber()}"></td>
+                            <th:block th:each="m : ${months.get(p)}">
+                                <td th:text="${tableData.get(p).get(wp).get(t).get(m) != null ? tableData.get(p).get(wp).get(t).get(m).getWorkedHours() : '/'}"></td>
+                            </th:block>
+                        </tr>
+                    </th:block>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-
 </body>
 </html>
