@@ -3,66 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin - Project Verification</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}"/>
+    <link rel="stylesheet" th:href="@{/css/verification.css}"/>
 </head>
 <body>
-    <h1>Project Verification</h1>
-    <p>Go back to <a th:href="@{/homeAdmin}">Home Page</a> | <a th:href="@{/logout}">LOGOUT</a></p>
+    <div class="page-wrapper">
+        <h1>Project Verification</h1>
+        <p class="nav-bar">
+            Go back to <a th:href="@{/homeAdmin}">Home Page</a> |
+            <a th:href="@{/logout}">LOGOUT</a>
+        </p>
 
-    <!-- Created Projects -->
-    <h2>Created Projects</h2>
-    <span th:if="${createdProjects == null or #maps.isEmpty(createdProjects)}">You have no Projects with status "CREATED"!</span>
-    <div th:unless="${createdProjects == null or #maps.isEmpty(createdProjects)}" th:each="p : ${createdProjects.keySet()}" >
-        <h3 th:text="${p.getTitle()} + ' | Duration: M1 -> M' + ${p.getMonthsNumber()}"></h3>
-        <span th:if="${createdProjects.get(p) == null or #maps.isEmpty(createdProjects.get(p))}">No Work-Packages have been created yet for this Project!</span>
-        <ul th:each="wp : ${createdProjects.get(p).keySet()}">
-            <li>
-                <span th:text="'WP ' + ${wp.getOrderNumber()} + ': ' + ${wp.getTitle()} + ', M' + ${wp.getStartingMonth()} + ' -> M' + ${wp.getEndingMonth()}"></span><br/>
-                <span th:if="${createdProjects.get(p).get(wp) == null or #lists.isEmpty(createdProjects.get(p).get(wp))}">No Tasks have been created yet for this Work-Package!</span>
-                <ul th:each="t : ${createdProjects.get(p).get(wp)}">
-                    <li th:text="'T ' + ${t.getOrderNumber()} + ': ' + ${t.getTitle()} +
-                        ', M' + ${t.getStartingMonth()} + ' -> M' + ${t.getEndingMonth()} +
-                        ' | Total Planned Hours: ' + ${t.getPlannedHours()} ">
-                    </li>
-                </ul>
-            </li>
-        </ul>
+        <!-- Created Projects -->
+        <h2>Created Projects</h2>
+        <span th:if="${createdProjects == null or #maps.isEmpty(createdProjects)}">You have no Projects with status "CREATED"!</span>
+        <div class="project-card status-created"
+             th:unless="${createdProjects == null or #maps.isEmpty(createdProjects)}"
+             th:each="p : ${createdProjects.keySet()}">
+            <h3 th:text="${p.getTitle()} + ' | Duration: M1 -> M' + ${p.getMonthsNumber()}"></h3>
+            <span th:if="${createdProjects.get(p) == null or #maps.isEmpty(createdProjects.get(p))}">No Work-Packages have been created yet for this Project!</span>
+            <ul th:each="wp : ${createdProjects.get(p).keySet()}" class="workPackage-card">
+                <li>
+                    <span th:text="'WP ' + ${wp.getOrderNumber()} + ': ' + ${wp.getTitle()} + ', M' + ${wp.getStartingMonth()} + ' -> M' + ${wp.getEndingMonth()}" class="workPackage-header"></span><br/>
+                    <span th:if="${createdProjects.get(p).get(wp) == null or #lists.isEmpty(createdProjects.get(p).get(wp))}">No Tasks have been created yet for this Work-Package!</span>
+                    <ul th:each="t : ${createdProjects.get(p).get(wp)}" class="task-list">
+                        <li th:text="'T ' + ${t.getOrderNumber()} + ': ' + ${t.getTitle()} +
+                            ', M' + ${t.getStartingMonth()} + ' -> M' + ${t.getEndingMonth()} +
+                            ' | Total Planned Hours: ' + ${t.getPlannedHours()} ">
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Assigned Projects -->
+        <h2>Assigned Projects</h2>
+        <span th:if="${assignedProjects == null or #maps.isEmpty(assignedProjects)}">You have no Projects with status "ASSIGNED"!</span>
+        <div class="project-card status-assigned"
+             th:unless="${assignedProjects == null or #maps.isEmpty(assignedProjects)}"
+             th:each="p : ${assignedProjects.keySet()}">
+            <h3 th:text="${p.getTitle()} + ' | Duration: M1 -> M' + ${p.getMonthsNumber()}"></h3>
+            <ul th:each="wp : ${assignedProjects.get(p).keySet()}" class="workPackage-card">
+                <li>
+                    <span th:text="'WP ' + ${wp.getOrderNumber()} + ': ' + ${wp.getTitle()} + ', M' + ${wp.getStartingMonth()} + ' -> M' + ${wp.getEndingMonth()}" class="workPackage-header"></span>
+                    <ul th:each="t : ${assignedProjects.get(p).get(wp)}" class="task-list">
+                        <li th:text="'T ' + ${t.getOrderNumber()} + ': ' + ${t.getTitle()} +
+                            ', M' + ${t.getStartingMonth()} + ' -> M' + ${t.getEndingMonth()} +
+                            ' | Total Planned Hours: ' + ${t.getPlannedHours()} + ', Total Worked Hours: ' + ${t.getWorkedHours()}">
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Concluded Projects -->
+        <h2>Concluded Projects</h2>
+        <span th:if="${concludedProjects == null or #maps.isEmpty(concludedProjects)}">You have no Projects with status "CONCLUDED"!</span>
+        <div class="project-card status-concluded"
+             th:unless="${concludedProjects == null or #maps.isEmpty(concludedProjects)}"
+             th:each="p : ${concludedProjects.keySet()}">
+            <h3 th:text="${p.getTitle()} + ' | Duration: M1 -> M' + ${p.getMonthsNumber()}"></h3>
+            <ul th:each="wp : ${concludedProjects.get(p).keySet()}" class="workPackage-card">
+                <li>
+                    <span th:text="'WP ' + ${wp.getOrderNumber()} + ': ' + ${wp.getTitle()} + ', M' + ${wp.getStartingMonth()} + ' -> M' + ${wp.getEndingMonth()}" class="workPackage-header"></span>
+                    <ul th:each="t : ${concludedProjects.get(p).get(wp)}" class="task-list">
+                        <li th:text="'T ' + ${t.getOrderNumber()} + ': ' + ${t.getTitle()} +
+                            ', M' + ${t.getStartingMonth()} + ' -> M' + ${t.getEndingMonth()} +
+                            ' | Total Planned Hours: ' + ${t.getPlannedHours()} + ', Total Worked Hours: ' + ${t.getWorkedHours()}">
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
     </div>
-
-    <!-- Assigned Projects -->
-    <h2>Assigned Projects</h2>
-    <span th:if="${assignedProjects == null or #maps.isEmpty(assignedProjects)}">You have no Projects with status "ASSIGNED"!</span>
-    <div th:unless="${assignedProjects == null or #maps.isEmpty(assignedProjects)}" th:each="p : ${assignedProjects.keySet()}" >
-        <h3 th:text="${p.getTitle()} + ' | Duration: M1 -> M' + ${p.getMonthsNumber()}"></h3>
-        <ul th:each="wp : ${assignedProjects.get(p).keySet()}">
-            <li>
-                <span th:text="'WP ' + ${wp.getOrderNumber()} + ': ' + ${wp.getTitle()} + ', M' + ${wp.getStartingMonth()} + ' -> M' + ${wp.getEndingMonth()}"></span>
-                <ul th:each="t : ${assignedProjects.get(p).get(wp)}">
-                    <li th:text="'T ' + ${t.getOrderNumber()} + ': ' + ${t.getTitle()} +
-                        ', M' + ${t.getStartingMonth()} + ' -> M' + ${t.getEndingMonth()} +
-                        ' | Total Planned Hours: ' + ${t.getPlannedHours()} + ', Total Worked Hours: ' + ${t.getWorkedHours()}">
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </div>
-
-    <!-- Concluded Projects -->
-    <h2>Concluded Projects</h2>
-    <span th:if="${concludedProjects == null or #maps.isEmpty(concludedProjects)}">You have no Projects with status "CONCLUDED"!</span>
-    <div th:unless="${concludedProjects == null or #maps.isEmpty(concludedProjects)}" th:each="p : ${concludedProjects.keySet()}" >
-        <h3 th:text="${p.getTitle()} + ' | Duration: M1 -> M' + ${p.getMonthsNumber()}"></h3>
-        <ul th:each="wp : ${concludedProjects.get(p).keySet()}">
-            <li>
-                <span th:text="'WP ' + ${wp.getOrderNumber()} + ': ' + ${wp.getTitle()} + ', M' + ${wp.getStartingMonth()} + ' -> M' + ${wp.getEndingMonth()}"></span>
-                <ul th:each="t : ${concludedProjects.get(p).get(wp)}">
-                    <li th:text="'T ' + ${t.getOrderNumber()} + ': ' + ${t.getTitle()} +
-                        ', M' + ${t.getStartingMonth()} + ' -> M' + ${t.getEndingMonth()} +
-                        ' | Total Planned Hours: ' + ${t.getPlannedHours()} + ', Total Worked Hours: ' + ${t.getWorkedHours()}">
-                    </li>
-                </ul>
-            </li>
-        </ul>
-    </div>
-
 </body>
 </html>
