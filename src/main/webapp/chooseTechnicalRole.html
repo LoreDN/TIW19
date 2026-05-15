@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Login - Project Management and Reporting</title>
+    <link rel="stylesheet" th:href="@{/css/global.css}"/>
+    <link rel="stylesheet" th:href="@{/css/authentication.css}"/>
 </head>
 <body>
-    <h1>Access to the "Project Management and Reporting" Web Portal</h1>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <h1>"Project Management and Reporting" Web Portal</h1>
+            <p th:text="'Welcome, ' + ${session.user.name} + ' ' + ${session.user.surname}"></p>
+            <h2>Choose your Technical Role</h2>
 
-    <p th:text="'Welcome, ' + ${session.user.name} + ' ' + ${session.user.surname}"></p>
-    <h2>Choose your Technical Role</h2>
-    <p>You have both Manager and Collaborator roles. Which home page do you want to access?</p>
-
-    <p>
-        <a th:href="@{/homeManager}">Go to Home Manager</a> |
-        <a th:href="@{/homeCollaborator}">Go to Home Collaborator</a> |
-        <a th:href="@{/logout}">LOGOUT</a>
-    </p>
+            <p>
+                <a th:href="@{/homeManager}" class="role-button">Go to Home Manager</a><br/>
+                <a th:href="@{/homeCollaborator}" class="role-button">Go to Home Collaborator</a><br/>
+                <a th:href="@{/logout}" class="role-button logout">LOGOUT</a>
+            </p>
+        </div>
+    </div>
 </body>
 </html>
