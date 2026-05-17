@@ -44,6 +44,7 @@
         <div th:if="${selectedTask != null}">
             <h2>Task Detail</h2>
             <p><strong>Title:</strong> <span th:text="${selectedTask.getTitle()}"></span></p>
+            <p><strong>Description:</strong> <span th:text="${selectedTask.getDescription()}"></span></p>
             <p><strong>Period:</strong> M<span th:text="${selectedTask.getStartingMonth()}"></span> -> M<span th:text="${selectedTask.getEndingMonth()}"></span></p>
             <div class="planning-grid">
                 <div th:each="p : ${plannings}" class="planning-card">

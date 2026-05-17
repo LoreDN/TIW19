@@ -171,7 +171,7 @@ public class CollaboratorDAO {
         Map<WorkPackage, List<Task>> assignments = new LinkedHashMap<>();
         User collaborator = UserDAO.getFromUsername(username);
         if (collaborator == null || !collaborator.isCollaborator()) return assignments;
-        String query = "SELECT  DISTINCT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+        String query = "SELECT  DISTINCT T.ID, T.orderNumber, T.title, T.description, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                 "FROM COLLABORATORS AS C " +
                 "JOIN TASKS AS T ON C.taskID = T.ID " +
                 "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
@@ -197,6 +197,7 @@ public class CollaboratorDAO {
                             resultSet.getInt("ID"),
                             resultSet.getFloat("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
+                            resultSet.getString("DESCRIPTION"),
                             resultSet.getInt("STARTINGMONTH"),
                             resultSet.getInt("ENDINGMONTH"),
                             workPackage.getProject(),

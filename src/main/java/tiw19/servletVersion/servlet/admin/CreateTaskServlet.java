@@ -51,6 +51,7 @@ public class CreateTaskServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String taskWPValues = request.getParameter("workPackageTitles");
         String taskTitle = request.getParameter("title");
+        String taskDescription = request.getParameter("description");
         String taskStartingMonth  = request.getParameter("startingMonth");
         String taskEndingMonth  = request.getParameter("endingMonth");
         String projectTitle, workPackageTitle;
@@ -79,6 +80,7 @@ public class CreateTaskServlet extends HttpServlet {
         // Server-side validation
         String taskErrorMessage = null;
         if (taskTitle == null || taskTitle.isBlank() ||
+                taskDescription == null || taskDescription.isBlank() ||
                 taskStartingMonth == null || taskStartingMonth.isBlank() ||
                 taskEndingMonth == null || taskEndingMonth.isBlank()
         ) {
@@ -130,7 +132,7 @@ public class CreateTaskServlet extends HttpServlet {
                 // create the new Task
                 if (TaskDAO.addNew(
                         ((User) session.getAttribute("user")).getUsername(), projectTitle, workPackageTitle, taskTitle,
-                        Integer.parseInt(taskStartingMonth), Integer.parseInt(taskEndingMonth)
+                        taskDescription, Integer.parseInt(taskStartingMonth), Integer.parseInt(taskEndingMonth)
                 )) {
                     session.setAttribute("taskSuccessMessage", "[Task Success] : Task has been added successfully!!!");
                     response.sendRedirect(request.getContextPath() + "/homeAdmin");

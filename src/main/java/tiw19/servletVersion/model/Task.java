@@ -4,10 +4,19 @@ import tiw19.servletVersion.dao.PlanningDAO;
 
 import java.sql.SQLException;
 
+/**
+ * Task Model Representation.
+ * <br>This Class works as the Task Model from the TASKS Table of the DB.
+ *
+ * @author LoreDN - Lorenzo Di Napoli
+ * @version 1.0
+ * @since 1.0
+ */
 public class Task {
     private final int ID;
     private final float orderNumber;
     private final String title;
+    private final String description;
     private final int startingMonth;
     private final int endingMonth;
     private final Project project;
@@ -19,15 +28,17 @@ public class Task {
      * @param ID            ID of the Task.
      * @param OrderNumber   Order Number of the Task.
      * @param title         Title of the Task.
+     * @param description   Description of the Task.
      * @param startingMonth Starting month of the Task.
      * @param endingMonth   Ending month of the Task.
      * @param project       Reference Project.
      * @param workPackage   Reference Work-Package.
      */
-    public Task(int ID, float OrderNumber, String title, int startingMonth, int endingMonth, Project project, WorkPackage workPackage) {
+    public Task(int ID, float OrderNumber, String title, String description, int startingMonth, int endingMonth, Project project, WorkPackage workPackage) {
         this.ID = ID;
         this.orderNumber = OrderNumber;
         this.title = title;
+        this.description = description;
         this.startingMonth = startingMonth;
         this.endingMonth = endingMonth;
         this.project = project;
@@ -59,6 +70,15 @@ public class Task {
      */
     public String getTitle() {
         return title;
+    }
+
+    /**
+     * Getter for the attribute description.
+     *
+     * @return Task.description
+     */
+    public String getDescription() {
+        return description;
     }
 
     /**

@@ -284,7 +284,7 @@ public class PlanningDAO {
     public static synchronized boolean isCompleted(int taskID) throws SQLException {
         String query = "SELECT count(*) " +
                 "FROM PLANNING " +
-                "WHERE taskID = ? AND plannedHours < workedHours";
+                "WHERE taskID = ? AND workedHours < plannedHours";
 
         // connect to the DB
         try (Connection connection = DBConnection.getConnection();

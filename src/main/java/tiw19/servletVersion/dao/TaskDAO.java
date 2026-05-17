@@ -78,12 +78,12 @@ public class TaskDAO {
      * @return True is Task addition was successfully, false otherwise.
      * @throws SQLException DB error
      */
-    public static synchronized boolean addNew(String admin, String projectTitle, String workPackageTitle, String taskTitle, int taskStartingMonth, int taskEndingMonth) throws SQLException {
+    public static synchronized boolean addNew(String admin, String projectTitle, String workPackageTitle, String taskTitle, String description, int taskStartingMonth, int taskEndingMonth) throws SQLException {
         User user = UserDAO.getFromUsername(admin);
         if (user == null || !user.isAdmin()) return false;
         String query = "INSERT INTO TASKS " +
-                "(orderNumber, title, startingMonth, endingMonth, workPackageID) " +
-                "VALUES (?, ?, ?, ?, ?)";
+                "(orderNumber, title, description, startingMonth, endingMonth, workPackageID) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
 
         // add new Task
         try (Connection connection = DBConnection.getConnection();
@@ -100,9 +100,10 @@ public class TaskDAO {
                     getNumber(workPackageID) + 1)
             ));
             statement.setString(2, taskTitle);
-            statement.setInt(3, taskStartingMonth);
-            statement.setInt(4, taskEndingMonth);
-            statement.setInt(5, workPackageID);
+            statement.setString(3, description);
+            statement.setInt(4, taskStartingMonth);
+            statement.setInt(5, taskEndingMonth);
+            statement.setInt(6, workPackageID);
 
             // update DB
             statement.executeUpdate();
@@ -237,13 +238,13 @@ public class TaskDAO {
         User user = UserDAO.getFromUsername(username);
         if (user == null) return tasks;
         if (user.isAdmin()) {
-            query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            query = "SELECT T.ID, T.orderNumber, T.title, T.description, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                     "FROM TASKS AS T " +
                     "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
                     "JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.admin = ? AND P.status = 'CREATED'";
         } else if (user.isManager()) {
-            query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            query = "SELECT T.ID, T.orderNumber, T.title, T.description, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                     "FROM TASKS AS T " +
                     "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
                     "JOIN PROJECTS AS P ON WP.projectID = P.ID " +
@@ -264,6 +265,7 @@ public class TaskDAO {
                             resultSet.getInt("ID"),
                             resultSet.getFloat("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
+                            resultSet.getString("DESCRIPTION"),
                             resultSet.getInt("STARTINGMONTH"),
                             resultSet.getInt("ENDINGMONTH"),
                             ProjectDAO.getFromID(resultSet.getInt("PROJECTID")),
@@ -291,11 +293,11 @@ public class TaskDAO {
         User user = UserDAO.getFromUsername(username);
         if (user == null) return null;
         if (user.isAdmin()) {
-            query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            query = "SELECT T.ID, T.orderNumber, T.title, T.description, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                     "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.title = ? AND P.admin = ? AND WP.title = ? AND T.title = ?";
         } else if (user.isManager()) {
-            query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+            query = "SELECT T.ID, T.orderNumber, T.title, T.description, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
                     "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                     "WHERE P.title = ? AND P.manager = ? AND WP.title = ? AND T.title = ?";
         } else return null;
@@ -317,6 +319,7 @@ public class TaskDAO {
                             resultSet.getInt("ID"),
                             resultSet.getFloat("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
+                            resultSet.getString("DESCRIPTION"),
                             resultSet.getInt("STARTINGMONTH"),
                             resultSet.getInt("ENDINGMONTH"),
                             ProjectDAO.getFromID(resultSet.getInt("PROJECTID")),
@@ -336,8 +339,10 @@ public class TaskDAO {
      * @throws SQLException DB error
      */
     public static synchronized Task getFromID(int taskID) throws SQLException {
-        String query = "SELECT T.ID, T.orderNumber, T.title, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
-                "FROM TASKS AS T JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID JOIN PROJECTS AS P ON WP.projectID = P.ID " +
+        String query = "SELECT T.ID, T.orderNumber, T.title, T.description, T.startingMonth, T.endingMonth, WP.projectID, T.workPackageID " +
+                "FROM TASKS AS T " +
+                "JOIN WORK_PACKAGES AS WP ON T.workPackageID = WP.ID " +
+                "JOIN PROJECTS AS P ON WP.projectID = P.ID " +
                 "WHERE T.ID = ?";
 
         // connect to the DB
@@ -354,6 +359,7 @@ public class TaskDAO {
                             resultSet.getInt("ID"),
                             resultSet.getFloat("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
+                            resultSet.getString("DESCRIPTION"),
                             resultSet.getInt("STARTINGMONTH"),
                             resultSet.getInt("ENDINGMONTH"),
                             ProjectDAO.getFromID(resultSet.getInt("PROJECTID")),
@@ -393,6 +399,7 @@ public class TaskDAO {
                             resultSet.getInt("ID"),
                             resultSet.getFloat("ORDERNUMBER"),
                             resultSet.getString("TITLE"),
+                            resultSet.getString("DESCRIPTION"),
                             resultSet.getInt("STARTINGMONTH"),
                             resultSet.getInt("ENDINGMONTH"),
                             workPackage.getProject(),
@@ -410,7 +417,7 @@ public class TaskDAO {
      * @param taskID ID of the Task.
      *
      * @return True if Task is fully assigned, false otherwise.
-     * @throws SQLException Db error
+     * @throws SQLException DB error
      */
     public static synchronized boolean isFullyAssigned(int taskID) throws SQLException {
         return PlanningDAO.allMonthsPlanned(taskID) && CollaboratorDAO.allMonthsAssigned(taskID);

@@ -98,6 +98,11 @@
             </div>
 
             <div class="form-group">
+                <label for="TaskDescription">Description:</label>
+                <input type="text" id="TaskDescription" name="description" th:value="${taskDescription}" required />
+            </div>
+
+            <div class="form-group">
                 <label for="TaskStartingMonth">Starting Month (according to the reference Work-Package):</label>
                 <input type="number" id="TaskStartingMonth" name="startingMonth" th:value="${taskStartingMonth}" min="1" required />
             </div>
