@@ -25,6 +25,9 @@ target/
 db/data
 src/main/resources/db.properties
 
+### Other resources ###
+**/images
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

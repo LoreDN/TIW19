@@ -1,3 +1,53 @@
+/* ========== WELCOME SECTION ========== */
+.welcome-section {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.welcome-section .nav-bar {
+    margin: 0;
+}
+
+
+/* ========== WELCOME BAR ========== */
+.welcome-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    width: fit-content;
+    padding: 0.75rem 1.25rem;
+    background: #ffffff;
+    border: 1px solid #dce3ee;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.welcome-bar img {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    min-height: 45px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #2c5f9e;
+}
+
+.welcome-bar p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 0;
+    padding: 0;
+}
+
+
 /* ========== FORMS ========== */
 .home-form {
     background: #ffffff;

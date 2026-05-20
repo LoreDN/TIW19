@@ -9,11 +9,16 @@
 <body>
     <div class="page-wrapper">
         <h1>Home Page - Admin role</h1>
-        <p th:text="'Welcome, ' + ${session.user.name} + ' ' + ${session.user.surname}"></p>
-        <p class="nav-bar">
-            Go to <a th:href="@{/homeAdmin/projectVerification}">Project Verification</a> |
-            <a th:href="@{/logout}">LOGOUT</a>
-        </p>
+        <div class="welcome-section">
+            <div class="welcome-bar">
+                <p th:text="'Welcome, ' + ${session.user.getName()} + ' ' + ${session.user.getSurname()}"></p>
+                <img th:src="@{'/images/' + ${session.user.getPhoto()}}" alt="Profile photo"/>
+            </div>
+            <p class="nav-bar">
+                Go to <a th:href="@{/homeAdmin/projectVerification}">Project Verification</a> |
+                <a th:href="@{/logout}">LOGOUT</a>
+            </p>
+        </div>
 
         <!-- Project Creation form -->
         <h2>Create a new Project</h2>
