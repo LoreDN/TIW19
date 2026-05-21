@@ -22,12 +22,17 @@ target/
 
 ### DB resources ###
 .env
-db/data
+db/data/
 
 ### Other resources ###
 !**/.gitkeep
-servletVersion/src/main/resources
-servletVersion/src/main/webapp/images
+servletVersion/src/main/resources/
+servletVersion/src/main/webapp/images/
+javascriptVersion/public/images/
+
+### Node.js ###
+docker-compose.override.yml
+javascriptVersion/node_modules/
 
 ### NetBeans ###
 /nbproject/private/

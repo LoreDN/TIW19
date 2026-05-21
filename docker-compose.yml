@@ -38,6 +38,7 @@ services:
     image: docker.io/library/node:18
     container_name: nodejs-TIW19
     working_dir: /app
+    env_file: .env
     ports:
       - "3000:3000"
 
