@@ -1,14 +1,12 @@
 version: "3.8"
 services:
 
-  # mariaDB container
+  # 1 ----- mariaDB
   mariadb:
 
     # set the container
-    image: mariadb:latest
+    image: docker.io/library/mariadb:latest
     container_name: db-TIW19
-
-    # set the environment
     env_file: .env
     ports:
       - "3306:3306"
@@ -17,3 +15,35 @@ services:
     volumes:
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:Z
       - ./db/data:/var/lib/mysql:Z
+
+  # 2 ----- Tomcat
+  tomcat:
+
+    # set the container
+    image: docker.io/library/tomcat:10.1
+    container_name: tomcat-TIW19
+    ports:
+      - "8080:8080"
+
+    # set volumes
+    volumes:
+      - ./servletVersion/target/TIW19-servlet-1.0.war:/usr/local/tomcat/webapps/TIW19-servlet.war:Z
+    depends_on:
+      - mariadb
+
+  # 3 ----- Node.js
+  nodejs:
+
+    # set the container
+    image: docker.io/library/node:18
+    container_name: nodejs-TIW19
+    working_dir: /app
+    ports:
+      - "3000:3000"
+
+    # set the volumes
+    volumes:
+      - ./javascriptVersion:/app:Z
+    command: sh -c "npm install && node server.js"
+    depends_on:
+      - mariadb

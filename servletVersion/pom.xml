@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>servletVersion</groupId>
-    <artifactId>TIW_19</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <name>TIW_19</name>
+    <artifactId>TIW19-servlet</artifactId>
+    <version>1.0</version>
+    <name>TIW19-servlet</name>
     <packaging>war</packaging>
 
     <properties>

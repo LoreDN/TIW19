@@ -23,10 +23,11 @@ target/
 ### DB resources ###
 .env
 db/data
-src/main/resources/db.properties
 
 ### Other resources ###
-**/images
+!**/.gitkeep
+servletVersion/src/main/resources
+servletVersion/src/main/webapp/images
 
 ### NetBeans ###
 /nbproject/private/
@@ -37,11 +38,6 @@ src/main/resources/db.properties
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
-### Maven ###
-.mvn
-mvnw
-mvnw.cmd
 
 ### VS Code ###
 .vscode/
