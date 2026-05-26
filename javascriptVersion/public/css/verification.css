@@ -1,0 +1,122 @@
+/* ========== PROJECT CARDS ========== */
+.project-card {
+    border: 1px solid #dce3ee;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    padding: 0;
+}
+
+.project-card h3 {
+    margin: 0;
+    padding: 0.75rem 1.25rem;
+}
+
+.project-card > span, .project-card > ul {
+    display: block;
+    padding: 0.5rem 1.25rem;
+    background: #ffffff;
+}
+
+
+/* ========== WORK-PACKAGE CARDS ========== */
+.workPackage-card {
+    list-style: none;
+    padding-left: 0;
+    border: 1px solid #dce3ee;
+    border-radius: 8px;
+    margin: 0 1.25rem 0.75rem 1.25rem;
+    overflow: hidden;
+}
+
+.workPackage-card .workPackage-header {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+.workPackage-card > li {
+    padding: 0;
+}
+
+.workPackage-card > li > span:not(.workPackage-header) {
+    display: block;
+    padding: 0.25rem 1rem 0.5rem 1rem;
+    background: #ffffff;
+    font-size: 0.875rem;
+}
+
+
+/* ========== TASK LIST ========== */
+.task-list {
+    padding: 0.25rem 1rem 0.5rem 2.5rem;
+    background: #ffffff;
+    margin: 0;
+}
+
+.task-list li {
+    font-size: 0.875rem;
+}
+
+
+/* ========== STATUS COLORS ========== */
+
+/* 1 - CREATED */
+.status-created {
+    border-color: #c0c0c0;
+}
+
+.status-created h3 {
+    background-color: #e8e8e8;
+    color: #3a3a3a;
+}
+
+.status-created .workPackage-card {
+    border-color: #d0d0d0;
+}
+
+.status-created .workPackage-header {
+    background-color: #f0f0f0;
+    color: #3a3a3a;
+}
+
+
+/* 2 - ASSIGNED */
+.status-assigned {
+    border-color: #a0bfdf;
+}
+
+.status-assigned h3 {
+    background-color: #dce8f8;
+    color: #1a3f6f;
+}
+
+.status-assigned .workPackage-card {
+    border-color: #b8d0e8;
+}
+
+.status-assigned .workPackage-header {
+    background-color: #eaf2fc;
+    color: #1a3f6f;
+}
+
+
+/* 3 - CONCLUDED */
+.status-concluded {
+    border-color: #90c9a0;
+}
+
+.status-concluded h3 {
+    background-color: #d4edda;
+    color: #1a5c30;
+}
+
+.status-concluded .workPackage-card {
+    border-color: #a8d8b0;
+}
+
+.status-concluded .workPackage-header {
+    background-color: #e6f4ea;
+    color: #1a5c30;
+}

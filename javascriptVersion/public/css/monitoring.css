@@ -1,0 +1,80 @@
+/* ========== TABLE WRAPPER ========== */
+.table-wrapper {
+    margin-bottom: 2rem;
+}
+
+
+/* ========== TABLE ========== */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+th, td {
+    border: 1px solid #dce3ee;
+    padding: 8px;
+    min-width: 50px;
+    max-width: 100px;
+    text-align: center;
+}
+
+
+/* ========== TABLE HEAD ========== */
+thead tr:first-child th {
+    background-color: #2c5f9e;
+    color: #ffffff;
+}
+
+thead tr:nth-child(2) th {
+    background-color: #dce8f8;
+    color: #1a3f6f;
+}
+
+thead th {
+    background-color: #dce8f8;
+    color: #1a3f6f;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* ========== TABLE BODY ========== */
+tbody td:first-child, tbody td:nth-child(2) {
+    background-color: #f0f4fa;
+    color: #2c3e6b;
+    font-weight: 600;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f4f6f9;
+}
+
+tbody tr:hover {
+    background-color: #eaf2fc;
+}
+
+
+/* ========== CONCLUSION FORM ========== */
+.conclude-form {
+    margin-top: 1.5rem;
+}
+
+.conclude-form button[type="submit"] {
+    padding: 0.65rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #1a6b36;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.conclude-form button[type="submit"]:hover {
+    background-color: #145228;
+}

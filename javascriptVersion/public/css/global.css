@@ -1,0 +1,123 @@
+/* ========== DEFAULT BASE ========== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    background-color: #f4f6f9;
+    color: #2c2c2c;
+    padding: 2rem 1rem;
+}
+
+.page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+
+/* ========== HEADERS ========== */
+h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-bottom: 0.8rem;
+}
+
+h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 2px solid #dce3ee;
+}
+
+h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #2c3e6b;
+    margin-top: 1.2rem;
+    margin-bottom: 0.4rem;
+}
+
+
+/* ========== PARAGRAPHS AND ANCHORS ========== */
+p {
+    margin-bottom: 0.5rem;
+}
+
+a {
+    color: #2c5f9e;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+
+/* ========== LISTS ========== */
+ul, ol {
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+li {
+    margin-bottom: 0.25rem;
+}
+
+
+/* ========== NAVIGATION BARS ========== */
+.nav-bar {
+    font-size: 0.9rem;
+    color: #555;
+    padding: 0.75rem 1.25rem;
+    background: #ffffff;
+    border: 1px solid #dce3ee;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    width: fit-content;
+    margin: 0 auto 1.5rem auto;
+}
+
+.nav-bar a {
+    color: #2c5f9e;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.nav-bar a:hover {
+    background-color: #dce8f8;
+    text-decoration: underline;
+}
+
+
+/* ========== SERVLET MESSAGES ========== */
+.msg-error {
+    color: #b00020;
+    background-color: #fdecea;
+    border: 1px solid #f5c2c7;
+    border-radius: 6px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.msg-success {
+    color: #1a6b36;
+    background-color: #eaf6ee;
+    border: 1px solid #b8dfc7;
+    border-radius: 6px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
