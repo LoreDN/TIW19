@@ -43,5 +43,13 @@ router.post('/logout', (request, response) => {
 });
 
 
+// GET /api/authentication/user
+router.get('/user', (request, response) => {
+    const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated" });
+    response.json(user);
+});
+
+
 // export the router
 module.exports = router;

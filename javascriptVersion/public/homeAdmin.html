@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page - Admin role</title>
+    <link rel="stylesheet" href="/TIW19-javascript/css/global.css"/>
+    <link rel="stylesheet" href="/TIW19-javascript/css/home.css"/>
+    <link rel="stylesheet" href="/TIW19-javascript/css/verification.css"/>
+</head>
+<body>
+
+    <!-- SECTION 1 ----- Home Admin -->
+    <div id="section-homeAdmin" class="page-wrapper">
+        <h1>Home Page - Admin role</h1>
+        <div class="welcome-section">
+            <div class="welcome-bar">
+                <p id="homeAdmin-welcome"></p>
+                <img id="homeAdmin-profile-photo" src="" alt="Profile photo"/>
+            </div>
+            <p class="nav-bar">
+                Go to <a href="#" id="button-homeAdmin-projectVerification">Project Verification</a> |
+                <a href="#" id="button-homeAdmin-logout">LOGOUT</a>
+            </p>
+        </div>
+
+        <!-- Project Creation form -->
+        <h2>Create a new Project</h2>
+        <p id="homeAdmin-project-error" class="msg-error" style="display:none;"></p>
+        <p id="homeAdmin-project-success" class="msg-success" style="display:none;"></p>
+        <form id="homeAdmin-project-form" class="home-form">
+            <div class="form-group">
+                <label for="homeAdmin-project-title">Title</label>
+                <input type="text" id="homeAdmin-project-title" required />
+            </div>
+
+            <div class="form-group">
+                <label for="homeAdmin-project-duration">Duration (in months):</label>
+                <input type="number" id="homeAdmin-project-duration" min="1" required />
+            </div>
+
+            <div class="form-group">
+                <label for="homeAdmin-project-manager">Manager: </label>
+                <input type="text" id="homeAdmin-project-manager" required />
+            </div>
+
+            <button type="submit">Save Project</button>
+        </form>
+
+        <!-- Projects container -->
+         <h2>Draft Projects</h2>
+        <div id="homeAdmin-projects-container"></div>
+    </div>
+
+    <!-- load scripts -->
+    <script src="/TIW19-javascript/js/utils.js"></script>
+    <script src="/TIW19-javascript/js/homeAdmin.js"></script>
+</body>
+</html>
