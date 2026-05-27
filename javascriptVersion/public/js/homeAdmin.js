@@ -63,24 +63,127 @@ document.getElementById('homeAdmin-project-form').addEventListener('submit', fun
     document.getElementById('homeAdmin-project-form').reset();
 });
 
-// rendering functions
+
+// 3 ----- Render a Project Draft
 function renderProject(project) {
     const container = document.getElementById('homeAdmin-projects-container');
+
+    // Project Draft card
     const card = document.createElement('div');
     card.className = 'project-draft-card';
     card.id = `project-card-${project.clientId}`;
-    card.innerHTML = `
+    container.appendChild(card);
+
+    // card content
+    const header = document.createElement('div');
+    header.className = 'project-draft-header';
+    header.innerHTML = `
         <strong>${escapeHtml(project.title)}</strong>
         &nbsp;|&nbsp; Duration: ${project.duration} month(s)
         &nbsp;|&nbsp; Manager: ${escapeHtml(project.manager)}
     `;
-    container.appendChild(card);
+    card.appendChild(header);
+
+    // add button
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.textContent = '+';
+    addButton.className = 'button-draft button-add';
+    addButton.title = 'Add Work-Package';
+    addButton.onclick = () => handleAddWorkPackage(project);
+    header.appendChild(addButton);
+
+    // remove button
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.textContent = '-';
+    removeButton.className = 'button-draft button-remove';
+    removeButton.title = 'Remove Project';
+    removeButton.onclick = () => handleRemoveProject(project.clientId);
+    header.appendChild(removeButton);
+
+    // Work-Packages list
+    const workPackagesList = document.createElement('ul');
+    workPackagesList.className = 'workPackages-draft-list';
+    workPackagesList.id = `workPackages-draft-list-${project.clientId}`;
+    card.appendChild(workPackagesList);
 }
 
-function escapeHtml(str) {
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+// remove a Project Draft
+function handleRemoveProject(clientId) {
+    allProjects.splice(allProjects.findIndex(project => project.clientId === clientId), 1);
+    document.getElementById(`project-card-${clientId}`).remove();
 }
+
+// add a Work-Package to a Project Draft
+function handleAddWorkPackage(project) {
+    const workPackage = {
+        orderNumber:   project.workPackages.length + 1,
+        title:         'Work-Package title',
+        startingMonth: 1,
+        endingMonth:   project.duration,
+        tasks:         []
+    };
+    project.workPackages.push(workPackage);
+    renderWorkPackage(workPackage, project);
+}
+
+
+// 3 ----- Render a Work-Package Draft item
+function renderWorkPackage(workPackage, project) {
+    const workPackagesList = document.getElementById(`workPackages-draft-list-${project.clientId}`);
+
+    // Work-Package Draft item
+    const item = document.createElement('li');
+    item.className = 'workPackage-draft-item';
+    item.id = `workPackage-draft-item-${project.clientId}-${workPackage.orderNumber}`;
+    workPackagesList.appendChild(item);
+
+    // order number label
+    const orderSpan = document.createElement('span');
+    orderSpan.textContent = `WP ${workPackage.orderNumber}:`;
+    orderSpan.className = 'workPackage-orderNumber';
+    item.appendChild(orderSpan);
+
+    // inline-editable fields
+    item.appendChild(makeEditable(workPackage, 'title'));
+    item.appendChild(document.createTextNode(' | M'));
+    item.appendChild(makeEditable(workPackage, 'startingMonth'));
+    item.appendChild(document.createTextNode(' → M'));
+    item.appendChild(makeEditable(workPackage, 'endingMonth'));
+
+    // add button
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.textContent = '+';
+    addButton.className = 'button-draft button-add';
+    addButton.title = 'Add Task';
+    addButton.onclick = () => handleAddTask(workPackage, project);
+    item.appendChild(addButton);
+
+    // remove button
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.textContent = '-';
+    removeButton.className = 'button-draft button-remove';
+    removeButton.title = 'Remove Work Package';
+    removeButton.onclick = () => handleRemoveWorkPackage(workPackage, project);
+    item.appendChild(removeButton);
+}
+
+// remove a Work-Package from a Project Draft
+function handleRemoveWorkPackage(workPackage, project) {
+    project.workPackages.splice(project.workPackages.indexOf(workPackage), 1);
+    document.getElementById(`workPackage-draft-item-${project.clientId}-${workPackage.orderNumber}`).remove();
+    project.workPackages.forEach((wp) => {
+        if (wp.orderNumber > workPackage.orderNumber) {
+            const item = document.getElementById(`workPackage-draft-item-${project.clientId}-${wp.orderNumber}`);
+            wp.orderNumber--;
+            item.id = `workPackage-draft-item-${project.clientId}-${wp.orderNumber}`;
+            item.querySelector('.workPackage-orderNumber').textContent = `WP ${wp.orderNumber}:`;
+        }
+    });
+}
+
+// add a Task to a Work-Package Draft
+function handleAddTask(workPackage, project) {} 

@@ -45,3 +45,43 @@ async function handleLogout() {
     if (response.ok) showPage('login');
     else showMessage('logout-error', data.error);    
 }
+
+
+// handle HTML escaping
+function escapeHtml(str) {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+// make an editable field (inline editing)
+function makeEditable(object, field) {
+    const span = document.createElement('span');
+    span.className = 'editable';
+    span.textContent = object[field];
+
+    // inline editing
+    span.onclick = () => {
+        const input = document.createElement('input');
+        input.type = (typeof object[field] === 'number') ? 'number' : 'text';
+        input.value = object[field];
+        input.className = 'editable-input';
+        span.replaceWith(input);
+        input.focus();
+
+        // update value
+        const save = () => {
+            const value = (input.type === 'number') ? parseInt(input.value, 10) : input.value.trim();
+            if (value && value !== '') object[field] = value;
+            span.textContent = object[field];
+            input.replaceWith(span);
+        };
+        input.onblur = save;
+        input.onkeydown = (event) => {
+            if (event.key === 'Enter') input.blur();
+        };
+    };
+    return span;
+}
