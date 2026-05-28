@@ -184,6 +184,32 @@
     white-space: nowrap;
 }
 
+.tasks-draft-list {
+    list-style: none;
+    padding-left: 1.5rem;
+    margin-top: 0.35rem;
+}
+
+.task-draft-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #dce3ee;
+    border-radius: 6px;
+    margin-bottom: 0.25rem;
+    background: #ffffff;
+    font-size: 0.875rem;
+}
+
+.task-orderNumber {
+    font-weight: 700;
+    color: #2c3e6b;
+    white-space: nowrap;
+}
+
+
+/* ========== PROJECT DRAFT BUTTONS ========== */
 .button-draft {
     border: none;
     border-radius: 4px;
@@ -210,4 +236,21 @@
 
 .button-draft.button-remove:hover {
     background-color: #7a0015;
+}
+
+.button-create {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #1a6b36;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.button-create:hover {
+    background-color: #145228;
 }

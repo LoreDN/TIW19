@@ -107,6 +107,15 @@ function renderProject(project) {
     workPackagesList.className = 'workPackages-draft-list';
     workPackagesList.id = `workPackages-draft-list-${project.clientId}`;
     card.appendChild(workPackagesList);
+
+    // create button
+    const createButton = document.createElement('button');
+    createButton.type = 'button';
+    createButton.textContent = 'Create Project';
+    createButton.className = 'button-create';
+    createButton.title = 'Create Project';
+    createButton.onclick = () => handleCreateProject(project);
+    card.appendChild(createButton);
 }
 
 // remove a Project Draft
@@ -131,6 +140,7 @@ function handleAddWorkPackage(project) {
 
 // 3 ----- Render a Work-Package Draft item
 function renderWorkPackage(workPackage, project) {
+    clearMessages('homeAdmin-project');
     const workPackagesList = document.getElementById(`workPackages-draft-list-${project.clientId}`);
 
     // Work-Package Draft item
@@ -169,6 +179,12 @@ function renderWorkPackage(workPackage, project) {
     removeButton.title = 'Remove Work Package';
     removeButton.onclick = () => handleRemoveWorkPackage(workPackage, project);
     item.appendChild(removeButton);
+
+    // Task list
+    const TaskList = document.createElement('ul');
+    TaskList.className = 'tasks-draft-list';
+    TaskList.id = `tasks-draft-list-${project.clientId}-${workPackage.orderNumber}`;
+    item.appendChild(TaskList);
 }
 
 // remove a Work-Package from a Project Draft
@@ -181,9 +197,97 @@ function handleRemoveWorkPackage(workPackage, project) {
             wp.orderNumber--;
             item.id = `workPackage-draft-item-${project.clientId}-${wp.orderNumber}`;
             item.querySelector('.workPackage-orderNumber').textContent = `WP ${wp.orderNumber}:`;
+            item.querySelector('.tasks-draft-list').id = `tasks-draft-list-${project.clientId}-${wp.orderNumber}`;
         }
     });
 }
 
 // add a Task to a Work-Package Draft
-function handleAddTask(workPackage, project) {} 
+function handleAddTask(workPackage, project) {
+    clearMessages('homeAdmin-project');
+    const task = {
+        orderNumber:   workPackage.tasks.length + 1,
+        title:         'Task title',
+        description:   'Task description',
+        startingMonth: workPackage.startingMonth,
+        endingMonth:   workPackage.endingMonth
+    };
+    workPackage.tasks.push(task);
+    renderTask(task, workPackage, project);
+} 
+
+
+// 4 ----- Render a Task Draft item
+function renderTask(task, workPackage, project) {
+    const tasksList = document.getElementById(`tasks-draft-list-${project.clientId}-${workPackage.orderNumber}`);
+
+    // Task Draft item
+    const item = document.createElement('li');
+    item.className = 'task-draft-item';
+    item.id = `task-draft-item-${project.clientId}-${workPackage.orderNumber}-${task.orderNumber}`;
+    tasksList.appendChild(item);
+
+    // order number label
+    const orderSpan = document.createElement('span');
+    orderSpan.textContent = `Task ${task.orderNumber}:`;
+    orderSpan.className = 'task-orderNumber';
+    item.appendChild(orderSpan);
+
+    // inline-editable fields
+    item.appendChild(makeEditable(task, 'title'));
+    item.appendChild(document.createTextNode(' | '));
+    item.appendChild(makeEditable(task, 'description'));
+    item.appendChild(document.createTextNode(' | M'));
+    item.appendChild(makeEditable(task, 'startingMonth'));
+    item.appendChild(document.createTextNode(' → M'));
+    item.appendChild(makeEditable(task, 'endingMonth'));
+
+    // remove button
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.textContent = '-';
+    removeButton.className = 'button-draft button-remove';
+    removeButton.title = 'Remove Task';
+    removeButton.onclick = () => handleRemoveTask(task, workPackage, project);
+    item.appendChild(removeButton);
+}
+
+// remove a Task from a Work-Package Draft
+function handleRemoveTask(task, workPackage, project) {
+    workPackage.tasks.splice(workPackage.tasks.indexOf(task), 1);
+    document.getElementById(`task-draft-item-${project.clientId}-${workPackage.orderNumber}-${task.orderNumber}`).remove();
+    workPackage.tasks.forEach((t) => {
+        if (t.orderNumber > task.orderNumber) {
+            const item = document.getElementById(`task-draft-item-${project.clientId}-${workPackage.orderNumber}-${t.orderNumber}`);
+            t.orderNumber--;
+            item.id = `task-draft-item-${project.clientId}-${workPackage.orderNumber}-${t.orderNumber}`;
+            item.querySelector('.task-orderNumber').textContent = `Task ${t.orderNumber}:`;
+        }
+    });
+}
+
+
+// 5 ----- Create a Project
+async function handleCreateProject(project) {
+    try {
+        const response = await fetch(BASE_URL + '/api/admin/createProject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(project)
+        });
+        const data = await response.json();
+        
+        // creation error
+        if (!response.ok) {
+            showMessage('homeAdmin-project-error', data.error);
+            return;
+        }
+        
+        // update client-side state
+        handleRemoveProject(project.clientId);
+        clearMessages('homeAdmin-project');
+        showMessage('homeAdmin-project-success', data.success);
+    } catch (exception) {
+        showMessage('homeAdmin-project-error', "[DB Error] : " + exception.message);
+    }
+}
