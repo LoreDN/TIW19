@@ -12,8 +12,8 @@ const BASE_URL = '/TIW19-javascript';
 // define routes path
 const pageRoutes = require('./routes/pages');
 const authRoutes = require('./routes/authentication');
-/* 
 const adminRoutes = require('./routes/admin');
+/* 
 const managerRoutes = require('./routes/manager');
 const collaboratorRoutes = require('./routes/collaborator');
 */
@@ -45,8 +45,8 @@ app.use(BASE_URL, express.static(path.join(__dirname, 'public')));
 
 // set the Fetch-API routes
 app.use(BASE_URL + '/api/authentication', authRoutes);
-/*
 app.use(BASE_URL + '/api/admin', adminRoutes);
+/*
 app.use(BASE_URL + '/api/manager', managerRoutes);
 app.use(BASE_URL + '/api/collaborator', collaboratorRoutes);
 */
