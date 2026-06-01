@@ -11,7 +11,9 @@ document.getElementById('button-homeAdmin-logout').onclick = () => handleLogout(
 
 // 1 ----- Page Initialization
 async function initPage() {
-    const response = await fetch(BASE_URL + '/api/authentication/user');
+    const response = await fetch(BASE_URL + '/api/authentication/user', {
+        method: 'GET'
+    });
     const user = await response.json();
 
     // loading error
@@ -20,6 +22,9 @@ async function initPage() {
         return;
     }
 
+    // load the page
+    showSection('section-homeAdmin');
+    history.pushState(null, '', BASE_URL + '/homeAdmin');
     document.getElementById('homeAdmin-welcome').textContent = `Welcome, ${user.name} ${user.surname}`;
     document.getElementById('homeAdmin-profile-photo').src = `${BASE_URL}/images/${user.photo}`;
 }
@@ -58,14 +63,14 @@ document.getElementById('homeAdmin-project-form').addEventListener('submit', fun
     // update client-side state
     const project = { "clientId": nextProjectID++, "title": title, "duration": duration, "manager": manager, "workPackages": [] };
     allProjects.push(project);
-    renderProject(project);
+    renderProjectDraft(project);
     showMessage('homeAdmin-project-success', "[Project Success] : Project has been added successfully!!!");
     document.getElementById('homeAdmin-project-form').reset();
 });
 
 
 // 3 ----- Render a Project Draft
-function renderProject(project) {
+function renderProjectDraft(project) {
     const container = document.getElementById('homeAdmin-projects-container');
 
     // Project Draft card
@@ -90,7 +95,7 @@ function renderProject(project) {
     addButton.textContent = '+';
     addButton.className = 'button-draft button-add';
     addButton.title = 'Add Work-Package';
-    addButton.onclick = () => handleAddWorkPackage(project);
+    addButton.onclick = () => handleAddWorkPackageDraft(project);
     header.appendChild(addButton);
 
     // remove button
@@ -99,7 +104,7 @@ function renderProject(project) {
     removeButton.textContent = '-';
     removeButton.className = 'button-draft button-remove';
     removeButton.title = 'Remove Project';
-    removeButton.onclick = () => handleRemoveProject(project.clientId);
+    removeButton.onclick = () => handleRemoveProjectDraft(project.clientId);
     header.appendChild(removeButton);
 
     // Work-Packages list
@@ -119,13 +124,13 @@ function renderProject(project) {
 }
 
 // remove a Project Draft
-function handleRemoveProject(clientId) {
+function handleRemoveProjectDraft(clientId) {
     allProjects.splice(allProjects.findIndex(project => project.clientId === clientId), 1);
     document.getElementById(`project-card-${clientId}`).remove();
 }
 
 // add a Work-Package to a Project Draft
-function handleAddWorkPackage(project) {
+function handleAddWorkPackageDraft(project) {
     const workPackage = {
         orderNumber:   project.workPackages.length + 1,
         title:         'Work-Package title',
@@ -134,12 +139,12 @@ function handleAddWorkPackage(project) {
         tasks:         []
     };
     project.workPackages.push(workPackage);
-    renderWorkPackage(workPackage, project);
+    renderWorkPackageDraft(workPackage, project);
 }
 
 
 // 3 ----- Render a Work-Package Draft item
-function renderWorkPackage(workPackage, project) {
+function renderWorkPackageDraft(workPackage, project) {
     clearMessages('homeAdmin-project');
     const workPackagesList = document.getElementById(`workPackages-draft-list-${project.clientId}`);
 
@@ -168,7 +173,7 @@ function renderWorkPackage(workPackage, project) {
     addButton.textContent = '+';
     addButton.className = 'button-draft button-add';
     addButton.title = 'Add Task';
-    addButton.onclick = () => handleAddTask(workPackage, project);
+    addButton.onclick = () => handleAddTaskDraft(workPackage, project);
     item.appendChild(addButton);
 
     // remove button
@@ -177,7 +182,7 @@ function renderWorkPackage(workPackage, project) {
     removeButton.textContent = '-';
     removeButton.className = 'button-draft button-remove';
     removeButton.title = 'Remove Work Package';
-    removeButton.onclick = () => handleRemoveWorkPackage(workPackage, project);
+    removeButton.onclick = () => handleRemoveWorkPackageDraft(workPackage, project);
     item.appendChild(removeButton);
 
     // Task list
@@ -188,7 +193,7 @@ function renderWorkPackage(workPackage, project) {
 }
 
 // remove a Work-Package from a Project Draft
-function handleRemoveWorkPackage(workPackage, project) {
+function handleRemoveWorkPackageDraft(workPackage, project) {
     project.workPackages.splice(project.workPackages.indexOf(workPackage), 1);
     document.getElementById(`workPackage-draft-item-${project.clientId}-${workPackage.orderNumber}`).remove();
     project.workPackages.forEach((wp) => {
@@ -203,7 +208,7 @@ function handleRemoveWorkPackage(workPackage, project) {
 }
 
 // add a Task to a Work-Package Draft
-function handleAddTask(workPackage, project) {
+function handleAddTaskDraft(workPackage, project) {
     clearMessages('homeAdmin-project');
     const task = {
         orderNumber:   workPackage.tasks.length + 1,
@@ -213,12 +218,12 @@ function handleAddTask(workPackage, project) {
         endingMonth:   workPackage.endingMonth
     };
     workPackage.tasks.push(task);
-    renderTask(task, workPackage, project);
+    renderTaskDraft(task, workPackage, project);
 } 
 
 
 // 4 ----- Render a Task Draft item
-function renderTask(task, workPackage, project) {
+function renderTaskDraft(task, workPackage, project) {
     const tasksList = document.getElementById(`tasks-draft-list-${project.clientId}-${workPackage.orderNumber}`);
 
     // Task Draft item
@@ -248,12 +253,12 @@ function renderTask(task, workPackage, project) {
     removeButton.textContent = '-';
     removeButton.className = 'button-draft button-remove';
     removeButton.title = 'Remove Task';
-    removeButton.onclick = () => handleRemoveTask(task, workPackage, project);
+    removeButton.onclick = () => handleRemoveTaskDraft(task, workPackage, project);
     item.appendChild(removeButton);
 }
 
 // remove a Task from a Work-Package Draft
-function handleRemoveTask(task, workPackage, project) {
+function handleRemoveTaskDraft(task, workPackage, project) {
     workPackage.tasks.splice(workPackage.tasks.indexOf(task), 1);
     document.getElementById(`task-draft-item-${project.clientId}-${workPackage.orderNumber}-${task.orderNumber}`).remove();
     workPackage.tasks.forEach((t) => {

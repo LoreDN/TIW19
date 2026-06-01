@@ -47,12 +47,38 @@
         </form>
 
         <!-- Projects container -->
-         <h2>Draft Projects</h2>
+        <h2>Draft Projects</h2>
         <div id="homeAdmin-projects-container"></div>
+    </div>
+
+    <!-- SECTION 2 ----- Project Verification -->
+    <div id="section-homeAdmin-projectVerification" class="page-wrapper" style="display:none;">
+        <h1>Project Verification</h1>
+        <p class="nav-bar">
+            Go back to <a href="#" id="button-homeAdmin-back">Home Page</a> |
+            <a href="#" id="button-projectVerification-logout">LOGOUT</a>
+        </p>
+        <p id="projectVerification-error" class="msg-error" style="display:none;"></p>
+
+        <!-- Created Projects -->
+        <h2>Created Projects</h2>
+        <p id="projectVerification-created-empty" style="display:none;">You have no Projects with status "CREATED"!</p>
+        <div id="projectVerification-created-container"></div>
+
+        <!-- Assigned Projects -->
+        <h2>Assigned Projects</h2>
+        <p id="projectVerification-assigned-empty" style="display:none;">You have no Projects with status "ASSIGNED"!</p>
+        <div id="projectVerification-assigned-container"></div>
+
+        <!-- Concluded Projects -->
+        <h2>Concluded Projects</h2>
+        <p id="projectVerification-concluded-empty" style="display:none;">You have no Projects with status "CONCLUDED"!</p>
+        <div id="projectVerification-concluded-container"></div>
     </div>
 
     <!-- load scripts -->
     <script src="/TIW19-javascript/js/utils.js"></script>
     <script src="/TIW19-javascript/js/homeAdmin.js"></script>
+    <script src="/TIW19-javascript/js/projectVerification.js"></script>
 </body>
 </html>
