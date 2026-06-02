@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page - Manager role</title>
+    <link rel="stylesheet" href="/TIW19-javascript/css/global.css"/>
+    <link rel="stylesheet" href="/TIW19-javascript/css/home.css"/>
+    <link rel="stylesheet" href="/TIW19-javascript/css/monitoring.css"/>
+</head>
+<body>
+
+    <!-- SECTION 1 ----- Home Manager -->
+    <div id="section-homeManager" class="page-wrapper">
+        <h1>Home Page - Manager role</h1>
+        <div class="welcome-section">
+            <div class="welcome-bar">
+                <p id="homeManager-welcome"></p>
+                <img id="homeManager-profile-photo" src="" alt="Profile photo"/>
+            </div>
+            <p class="nav-bar">
+                Go to <a href="#" id="button-homeManager-projectMonitoring">Project Monitoring</a> |
+                <a href="#" id="button-homeManager-collaboratorsMonitoring">Collaborators Monitoring</a> |
+                <a href="#" id="button-homeManager-logout">LOGOUT</a>
+            </p>
+        </div>
+
+        <!-- Task-Hours Assignment form -->
+        <h2>Assign the amount of hours planned for one couple (Task, Month)</h2>
+        <p id="homeManager-hours-error" class="msg-error" style="display:none"></p>
+        <p id="homeManager-hours-success" class="msg-success" style="display:none"></p>
+        <form id="homeManager-hours-form" class="home-form">
+            <!-- Task reference -->
+            <div id="homeManager-hours-selection" class="form-group"></div>
+
+            <!-- Assignment parameters -->
+            <div class="form-group">
+                <label for="homeManager-hours-month">Month:</label>
+                <input type="number" id="homeManager-hours-month" min="1" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="homeManager-hours-plannedHours">Planned Hours:</label>
+                <input type="number" id="homeManager-hours-plannedHours"  min="0" required/>
+            </div>
+
+            <button type="submit">Save Planned Hours</button>
+        </form>
+
+        <!-- Collaborators Assignment form -->
+        <h2>Assign a Collaborator to a Task</h2>
+        <p id="homeManager-collaborators-error" class="msg-error" style="display:none;"></p>
+        <p id="homeManager-collaborators-success" class="msg-success" style="display:none;"></p>
+        <form id="homeManager-collaborators-form" class="home-form">
+            <!-- Task reference -->
+            <div id="homeManager-collaborators-selection" class="form-group"></div>
+
+            <!-- Assignment parameters -->
+            <div class="form-group">
+                <label for="homeManager-collaborators-username">Collaborator:</label>
+                <input type="text" id="homeManager-collaborators-username" required/>
+            </div>
+
+            <div class="form-group">
+                <label for="homeManager-collaborators-month">Month:</label>
+                <input type="number" id="homeManager-collaborators-month" min="1" required/>
+            </div>
+
+            <button type="submit">Save Assignment</button>
+        </form>
+
+        <!-- Project Assignment form -->
+        <h2>Set a Project to the status ASSIGNED</h2>
+        <p id="homeManager-project-error" class="msg-error" style="display:none;"></p>
+        <p id="homeManager-project-success" class="msg-success" style="display:none;"></p>
+        <form id="homeManager-project-form" class="home-form">
+            <!-- Project selection -->
+            <div id="homeManager-project-selection" class="form-group"></div>
+
+            <button type="submit">Set Project to ASSIGN status</button>
+        </form>
+    </div>
+    
+    <!-- load scripts -->
+    <script src="/TIW19-javascript/js/utils.js"></script>
+    <script src="/TIW19-javascript/js/homeManager.js"></script>
+</body>
+</html>

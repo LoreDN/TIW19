@@ -64,6 +64,20 @@
     margin-bottom: 1rem;
 }
 
+.home-form .form-group select + label {
+    margin-top: 0.75rem;
+}
+
+.home-form .form-group span {
+    font-size: 0.875rem;
+    color: #7a0015;
+    background-color: #fdecea;
+    border: 1px solid #f5c2c7;
+    border-radius: 6px;
+    padding: 0.4rem 0.75rem;
+    margin-top: 0.5rem;
+}
+
 .home-form label {
     font-size: 0.875rem;
     font-weight: 600;
