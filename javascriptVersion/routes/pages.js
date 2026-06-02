@@ -27,12 +27,21 @@ router.get('/login', (request, response) => {
     response.sendFile(path.join(__dirname, '../public', 'login.html'));
 });
 
+
 // GET /homeAdmin
 router.get('/homeAdmin', (request, response) => {
     const user = getSessionUser(request);
     if (!user || !user.isAdmin()) return logoutRedirect(request, response);
     response.sendFile(path.join(__dirname, '../public', 'homeAdmin.html'));
 });
+
+// GET /homeAdmin/projectVerification
+router.get('/homeAdmin/projectVerification', (request, response) => {
+    const user = getSessionUser(request);
+    if (!user || !user.isAdmin()) return logoutRedirect(request, response);
+    response.sendFile(path.join(__dirname, '../public', 'homeAdmin.html'));
+});
+
 
 // GET /homeManager
 router.get('/homeManager', (request, response) => {

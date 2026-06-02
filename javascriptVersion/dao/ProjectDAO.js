@@ -2,8 +2,10 @@
 
 // DAO definition
 const DBPool = require('./DBPool');
-const userDAO = require('./UserDAO');
-const workPackageDAO = require('./WorkPackageDAO');
+const UserDAO = require('./UserDAO');
+const WorkPackageDAO = require('./WorkPackageDAO');
+
+const Project = require('../model/Project');
 
 
 // 1 ----- Check if a Project already exists
@@ -16,8 +18,7 @@ async function existsProject(admin, title) {
         [title, admin]
     );
     if (rows.length === 0) return true;
-    const r = rows[0];
-    return r.count > 0;
+    return rows[0].count > 0;
 }
 
 
@@ -27,7 +28,7 @@ async function isValid(admin, project) {
         return "All fields are required!!!";
     
     // sanity check
-    const manager = await userDAO.getFromUsername(project.manager);
+    const manager = await UserDAO.getFromUsername(project.manager);
     // unique title
     if (await existsProject(admin, project.title))
         return "[Project Error] : Project with title \"" + project.title + "\" already exists!!!";
@@ -44,7 +45,7 @@ async function isValid(admin, project) {
 
     // check Work-Packages validity
     for (const workPackage of project.workPackages) {
-        const wpValidity = workPackageDAO.isValid(project, workPackage);
+        const wpValidity = WorkPackageDAO.isValid(project, workPackage);
         if (wpValidity !== true) return wpValidity;
     }
 
@@ -71,8 +72,30 @@ async function addNew(admin, project) {
     // add Work-Packages
     const projectID = newRow.insertId;
     for (const workPackage of project.workPackages) {
-        await workPackageDAO.addNew(projectID, workPackage);
+        await WorkPackageDAO.addNew(projectID, workPackage);
     }
+}
+
+
+// 4 ----- Get all Projects for an admin
+async function getAll(username, role) {
+    const projects = [];
+    if (!username || !role || role !== 'ADMIN') return projects;
+
+    // query the DB
+    const [rows] = await DBPool.query(
+        "SELECT * " +
+        "FROM PROJECTS " +
+        "WHERE admin = ?",
+        [username]
+    );
+    for (const row of rows) {
+        projects.push( new Project(
+            row.ID, row.title, row.monthsNumber, row.status, row.admin, row.manager,
+            await WorkPackageDAO.getAll(row.ID)
+        ));
+    }
+    return projects;
 }
 
 
@@ -80,5 +103,6 @@ async function addNew(admin, project) {
 module.exports = {
     existsProject,
     isValid,
-    addNew
+    addNew,
+    getAll
 };

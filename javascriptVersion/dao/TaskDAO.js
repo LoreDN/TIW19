@@ -2,6 +2,9 @@
 
 // DAO definition
 const DBPool = require('./DBPool');
+const PlanningDAO = require('./PlanningDAO');
+
+const Task = require('../model/Task');
 
 
 // 1 ----- Check if a Task is valid
@@ -40,8 +43,29 @@ async function addNew(workPackageID, decimalOrderNumber, task) {
 }
 
 
+// 3 ----- Get all Tasks for a Work-Package
+async function getAll(workPackageID) {
+    const tasks = [];
+    if (!workPackageID) return tasks;
+    const [rows] = await DBPool.query(
+        "SELECT * " +
+        "FROM TASKS AS T " +
+        "WHERE workPackageID = ?",
+        [workPackageID]
+    );
+    for (const row of rows) {
+        tasks.push( new Task(
+            row.ID, row.orderNumber, row.title, row.description, row.startingMonth, row.endingMonth, 
+            await PlanningDAO.getPlannedHours(row.ID)
+        ));
+    }
+    return tasks;
+}
+
+
 // export the DAO functions
 module.exports = {
     isValid,
-    addNew
+    addNew,
+    getAll
 };

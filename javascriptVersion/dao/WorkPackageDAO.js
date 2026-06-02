@@ -2,7 +2,9 @@
 
 // DAO definition
 const DBPool = require('./DBPool');
-const taskDAO = require('./TaskDAO');
+const TaskDAO = require('./TaskDAO');
+
+const WorkPackage = require('../model/WorkPackage');
 
 
 // 1 ----- Check if a Work-Package is valid
@@ -27,7 +29,7 @@ function isValid(project, workPackage) {
 
     // check Tasks validity
     for (const task of workPackage.tasks) {
-        const taskValidity = taskDAO.isValid(workPackage, task);
+        const taskValidity = TaskDAO.isValid(workPackage, task);
         if (taskValidity !== true) return taskValidity;
     }
 
@@ -57,13 +59,34 @@ async function addNew(projectID, workPackage) {
         const decimalOrderNumber = parseFloat(
             `${workPackage.orderNumber}.${String(task.orderNumber).padStart(2, '0')}`
         );
-        await taskDAO.addNew(workPackageID, decimalOrderNumber, task);
+        await TaskDAO.addNew(workPackageID, decimalOrderNumber, task);
     }
+}
+
+
+// 3 ----- Get all Work-Packages for a Project
+async function getAll(projectID) {
+    const workPackages = [];
+    if (!projectID) return workPackages;
+    const [rows] = await DBPool.query(
+        "SELECT * " +
+        "FROM WORK_PACKAGES " +
+        "WHERE projectID = ?",
+        [projectID]
+    );
+    for (const row of rows) {
+        workPackages.push( new WorkPackage(
+            row.ID, row.orderNumber, row.title, row.startingMonth, row.endingMonth, 
+            await TaskDAO.getAll(row.ID)
+        ));
+    }
+    return workPackages;
 }
 
 
 // export the DAO functions
 module.exports = {
     isValid,
-    addNew
+    addNew,
+    getAll
 };
