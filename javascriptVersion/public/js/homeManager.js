@@ -164,3 +164,206 @@ function workPackageSelected(form, workPackageId) {
         select.appendChild(option);
     });
 }
+
+
+// 3 ----- Handle Hours Assignment
+document.getElementById('homeManager-hours-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    clearMessages('homeManager-hours');
+
+    // get the form data
+    const taskID = parseInt(document.getElementById('homeManager-hours-selection-tasks').value, 10);
+    const month = parseInt(document.getElementById('homeManager-hours-month').value, 10);
+    const plannedHours = parseInt(document.getElementById('homeManager-hours-plannedHours').value, 10);
+
+    // client-side validation
+    const task = allProjects.flatMap(project => project.workPackages)
+        .flatMap(workPackage => workPackage.tasks)
+        .find(task => task.id === taskID);
+    let errorMessage = "";
+    if (!taskID || !month || (!plannedHours && plannedHours !== 0))
+        errorMessage = "All fields are required!!!";
+    // task
+    else if (!task)
+        errorMessage = "[Hours Error] : Task not found!!!";
+    // month
+    else if (isNaN(month))
+        errorMessage = "Month must be a number!!!";
+    else if (month < 1)
+        errorMessage = "[Hours Error] : Month must be greater than 0!!!";
+    else if (month < task.startingMonth)
+        errorMessage = "[Hours Error] : Month cannot be smaller than the Task starting one!!!";
+    else if (month > task.endingMonth)
+        errorMessage = "[Hours Error] : Month cannot be greater than the Task ending one!!!";
+    // planned hours
+    else if (isNaN(plannedHours))
+        errorMessage = "Planned hours must be a number!!!";
+    else if (plannedHours < 0)
+        errorMessage = "[Hours Error] : Planned hours must be greater than 0!!!";
+
+    // form error
+    if (errorMessage) {
+        showMessage('homeManager-hours-error', errorMessage);
+        return;
+    }
+
+    // update client-side state
+    const assignment = { "taskID": taskID, "month": month, "plannedHours": plannedHours };
+    await handleHoursAssignment(assignment);
+});
+
+// fetch assignment
+async function handleHoursAssignment(assignment) {
+    try {
+        const response = await fetch(BASE_URL + '/api/manager/assignHours', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assignment })
+        });
+        const data = await response.json();
+        
+        // assignment error
+        if (!response.ok) {
+            showMessage('homeManager-hours-error', data.error);
+            return;
+        }
+
+        // update client-side state
+        showMessage('homeManager-hours-success', data.success);
+        document.getElementById('homeManager-hours-form').reset();
+    } catch (exception) {
+        showMessage('homeManager-hours-error', "[DB Error] : " + exception.message);
+    }
+}
+
+// 4 ----- Handle Collaborator Assignment
+document.getElementById('homeManager-collaborators-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    clearMessages('homeManager-collaborators');
+
+    // get the form data
+    const taskID = parseInt(document.getElementById('homeManager-collaborators-selection-tasks').value, 10);
+    const month = parseInt(document.getElementById('homeManager-collaborators-month').value, 10);
+    const collaborator = document.getElementById('homeManager-collaborators-username').value;
+
+    // client-side validation
+    const task = allProjects.flatMap(project => project.workPackages)
+        .flatMap(workPackage => workPackage.tasks)
+        .find(task => task.id === taskID);
+    let errorMessage = "";
+    if (!taskID || !month || !collaborator)
+        errorMessage = "All fields are required!!!";
+    // task
+    else if (!task)
+        errorMessage = "[Collaborator Error] : Task not found!!!";
+    // month
+    else if (isNaN(month))
+        errorMessage = "Month must be a number!!!";
+    else if (month < 1)
+        errorMessage = "[Collaborator Error] : Month must be greater than 0!!!";
+    else if (month < task.startingMonth)
+        errorMessage = "[Collaborator Error] : Month cannot be smaller than the Task starting one!!!";
+    else if (month > task.endingMonth)
+        errorMessage = "[Collaborator Error] : Month cannot be greater than the Task ending one!!!";
+
+    // form error
+    if (errorMessage) {
+        showMessage('homeManager-collaborators-error', errorMessage);
+        return;
+    }
+
+    // update client-side state
+    const assignment = { "taskID": taskID, "month": month, "collaborator": collaborator };
+    await handleCollaboratorAssignment(assignment);
+});
+
+// fetch assignment
+async function handleCollaboratorAssignment(assignment) {
+    try {
+        const response = await fetch(BASE_URL + '/api/manager/assignCollaborator', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assignment })
+        });
+        const data = await response.json();
+        
+        // assignment error
+        if (!response.ok) {
+            showMessage('homeManager-collaborators-error', data.error);
+            return;
+        }
+
+        // update client-side state
+        showMessage('homeManager-collaborators-success', data.success);
+        document.getElementById('homeManager-collaborators-form').reset();
+    } catch (exception) {
+        showMessage('homeManager-collaborators-error', "[DB Error] : " + exception.message);
+    }
+}
+
+
+// 4 ----- Handle Project Assignment
+document.getElementById('homeManager-project-form').addEventListener('submit', async function (event) {
+    event.preventDefault();
+    clearMessages('homeManager-project');
+
+    // get the form data
+    const projectID = parseInt(document.getElementById('homeManager-project-selection-projects').value, 10);
+
+    // client-side validation
+    const project = allProjects.find(project => project.id === projectID);
+    let errorMessage = "";
+    if (!projectID || !project)
+        errorMessage = "Project not found!!!";
+
+    // form error
+    if (errorMessage) {
+        showMessage('homeManager-project-error', errorMessage);
+        return;
+    }
+
+    // update client-side state
+    await handleProjectAssignment(projectID);
+});
+
+// fetch assignment
+async function handleProjectAssignment(projectID) {
+    try {
+        const response = await fetch(BASE_URL + '/api/manager/assignProject', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ projectID })
+        });
+        const data = await response.json();
+        
+        // assignment error
+        if (!response.ok) {
+            showMessage('homeManager-project-error', data.error);
+            return;
+        }
+
+        // update client-side state
+        allProjects = allProjects.filter(project => project.id !== projectID);
+        showMessage('homeManager-project-success', data.success);
+        ['hours', 'collaborators', 'project'].forEach(form => {
+            const select = document.getElementById(`homeManager-${form}-selection-projects`);
+            
+            // clear sibling selections if the removed project was selected
+            if (parseInt(select.value, 10) === projectID) {
+                ['tasks', 'workPackages'].forEach(level => {
+                    const oldMessage = document.getElementById(`homeManager-${form}-selection-${level}-empty`);
+                    if (oldMessage) oldMessage.remove();
+                    const oldSelect = document.getElementById(`homeManager-${form}-selection-${level}`);
+                    if (oldSelect) {
+                        oldSelect.previousElementSibling.remove();
+                        oldSelect.remove();
+                    }
+                });
+            }
+            select.querySelector(`option[value="${projectID}"]`).remove();
+            if (form !== 'project') projectSelected(form, select.value);
+        });
+    } catch (exception) {
+        showMessage('homeManager-project-error', "[DB Error] : " + exception.message);
+    }
+}
