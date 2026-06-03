@@ -22,18 +22,19 @@ async function initPage() {
 
     // load the page
     showSection('section-homeManager');
+    history.pushState(null, '', BASE_URL + '/homeManager');
     document.getElementById('homeManager-welcome').textContent = `Welcome, ${user.name} ${user.surname}`;
     document.getElementById('homeManager-profile-photo').src = `${BASE_URL}/images/${user.photo}`;
-    await loadProjects();
+    await loadCreatedProjects();
 }
 initPage();
 
 // load all the Projects 
-async function loadProjects() {
+async function loadCreatedProjects() {
     const forms = ['hours', 'collaborators', 'project'];
-    const response = await fetch(BASE_URL + '/api/manager/loadProjects', {
+    const response = await fetch(BASE_URL + '/api/manager/loadProjects?status=CREATED', {
         method: 'GET'
-    })
+    });
     const data = await response.json();
 
     // loading error

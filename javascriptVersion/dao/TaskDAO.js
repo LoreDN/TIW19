@@ -63,9 +63,62 @@ async function getAll(workPackageID) {
 }
 
 
+// 4 ----- Get a Task from its ID
+async function getFromID(taskID) {
+    if (!taskID || isNaN(taskID)) return null;
+    const [rows] = await DBPool.query(
+        "SELECT * " +
+        "FROM TASKS " +
+        "WHERE ID = ?",
+        [taskID]
+    );
+    if (rows.length === 0) return null;
+    const row = rows[0];
+    return new Task(
+        row.ID, row.orderNumber, row.title, row.description, row.startingMonth, row.endingMonth, 
+        await PlanningDAO.getPlannedHours(row.ID)
+    );
+}
+
+
+// 5 ----- Check if a Task is fully assigned
+async function isAssigned(taskID) {
+    if (!taskID || isNaN(taskID)) return false;
+    const task = await getFromID(taskID);
+    if (!task) return false;
+
+    // check Planning
+    const [hoursRows] = await DBPool.query(
+        "SELECT count(*) AS count " +
+        "FROM PLANNING " +
+        "WHERE taskID = ?",
+        [taskID]
+    );
+    if (hoursRows.length === 0 ||
+        Number(hoursRows[0].count) !== (Number(task.endingMonth) - Number(task.startingMonth) + 1)
+    ) return false;
+
+    // check collaborators
+    for (let month = task.startingMonth; month <= task.endingMonth; month++) {
+        const [collaboratorRows] = await DBPool.query(
+            "SELECT count(*) AS count " +
+            "FROM COLLABORATORS " +
+            "WHERE taskID = ? AND month = ?",
+            [taskID, month]
+        );
+        if (collaboratorRows.length === 0 || Number(collaboratorRows[0].count) === 0) return false;
+    }
+
+    // all checks passed
+    return true;
+}
+
+
 // export the DAO functions
 module.exports = {
     isValid,
     addNew,
-    getAll
+    getAll,
+    getFromID,
+    isAssigned
 };

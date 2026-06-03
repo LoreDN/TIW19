@@ -4,6 +4,7 @@
 const DBPool = require('./DBPool');
 const UserDAO = require('./UserDAO');
 const WorkPackageDAO = require('./WorkPackageDAO');
+const TaskDAO = require('./TaskDAO');
 
 const Project = require('../model/Project');
 
@@ -99,10 +100,100 @@ async function getAll(username, role) {
 }
 
 
+// 5 ----- Get all created Projects with a specific status for a manager
+async function getWithStatus(username, role, status) {
+    const projects = [];
+    if (!username || !role || role !== 'MANAGER' || !status) return projects;
+
+    // query the DB
+    const [rows] = await DBPool.query(
+        "SELECT * " +
+        "FROM PROJECTS " +
+        "WHERE status = ? AND manager = ?",
+        [status, username]
+    );
+    for (const row of rows) {
+        projects.push( new Project(
+            row.ID, row.title, row.monthsNumber, row.status, row.admin, row.manager,
+            await WorkPackageDAO.getAll(row.ID)
+        ));
+    }
+    return projects;
+}
+
+
+// 6 ----- Get a Project from its ID
+async function getFromID(projectID) {
+    if (!projectID || isNaN(projectID)) return null;
+    const [rows] = await DBPool.query(
+        "SELECT * " +
+        "FROM PROJECTS " +
+        "WHERE ID = ?",
+        [projectID]
+    );
+    if (rows.length === 0) return null;
+    const row = rows[0];
+    return new Project(
+        row.ID, row.title, row.monthsNumber, row.status, row.admin, row.manager,
+        await WorkPackageDAO.getAll(row.ID)
+    );
+}
+
+
+// 7 ----- Check if a Project can be assigned
+async function canBeAssigned(projectID, manager) {
+    if (!projectID || isNaN(projectID) || !manager)
+        return "All fields are required!!!";
+    
+    // sanity check
+    const project = await getFromID(projectID);
+    // project
+    if (!project)
+        return "[Project Error] : Project not found!!!";
+    else if (project.manager !== manager)
+        return "[Project Error] : Project not assigned to the logged MANAGER!!!";
+    else if (project.status !== 'CREATED')
+        return "[Project Error] : Project status must be CREATED to be assigned!!!";
+    // tasks
+    else {
+        for (let month = 1; month <= project.duration; month++) {
+            const workPackageCovered = project.workPackages.some(workPackage => (workPackage.startingMonth <= month && month <= workPackage.endingMonth));
+            if (!workPackageCovered) return `[Project Error] : Month M${month} is not covered by any Work-Package!!!`;
+            const taskCovered = project.workPackages.flatMap(workPackage => workPackage.tasks).some(task => (task.startingMonth <= month && month <= task.endingMonth));
+            if (!taskCovered) return `[Project Error] : Month M${month} is not covered by any Task!!!`;
+        }
+        for (const task of project.workPackages.flatMap(workPackage => workPackage.tasks).values()) {
+            if (!(await TaskDAO.isAssigned(task.id))) {
+                return "[Project Error] : Task " + task.orderNumber + " is not assigned!!!";
+            }
+        }
+    }
+
+    // all checks passed
+    return true;
+}
+
+
+// 8 ----- Update a Project status
+async function updateStatus(projectID, newStatus) {
+    if (!projectID || isNaN(projectID) || !newStatus) return;
+    await DBPool.query(
+        "UPDATE PROJECTS " +
+        "SET status = ? " +
+        "WHERE ID = ?",
+        [newStatus, projectID]
+    );
+}
+
+
 // export the DAO functions
 module.exports = {
     existsProject,
     isValid,
     addNew,
-    getAll
+    getAll,
+    getWithStatus,
+    getFromID,
+    canBeAssigned,
+    updateStatus
 };
