@@ -125,7 +125,7 @@ function renderTask(container, task) {
     taskElement.innerHTML = `
         <strong>T ${task.orderNumber}:</strong> ${escapeHtml(task.title)}
         &nbsp;|&nbsp; Duration: M${task.startingMonth} -> M${task.endingMonth}
-        &nbsp;|&nbsp; Total Planned Hours: ${task.plannedHours}
+        &nbsp;|&nbsp; Total Planned Hours: ${task.plannedHours.reduce((sum, p) => sum + p.plannedHours, 0)}
     `;
     container.appendChild(taskElement);
 }

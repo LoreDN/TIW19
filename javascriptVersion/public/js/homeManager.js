@@ -4,6 +4,7 @@
 let allProjects;
 
 // section links
+document.getElementById('button-homeManager-projectMonitoring').onclick = () => showProjectMonitoring();
 document.getElementById('button-homeManager-logout').onclick = () => handleLogout();
 
 

@@ -6,19 +6,43 @@ const DBPool = require('./DBPool');
 
 // 1 ----- Get total planned hours for a Task
 async function getPlannedHours(taskID) {
-    if (!taskID) return 0;
+    const plannedHours = [];
+    if (!taskID) return plannedHours;
     const [rows] = await DBPool.query(
-        "SELECT sum(plannedHours) AS sum " +
+        "SELECT month, plannedHours " +
         "FROM PLANNING " +
         "WHERE taskID = ?",
         [taskID]
     );
-    if (rows.length === 0) return 0;
-    return rows[0].sum || 0;
+    if (rows.length === 0) return plannedHours;
+    for (const row of rows) plannedHours.push({
+        month: row.month,
+        plannedHours: row.plannedHours
+    });
+    return plannedHours;
 }
 
 
-// 2 ----- Check if a Planning is valid
+// 2 ----- Get total worked hours for a Task
+async function getWorkedHours(taskID) {
+    const workedHours = [];
+    if (!taskID) return workedHours;
+    const [rows] = await DBPool.query(
+        "SELECT month, workedHours " +
+        "FROM PLANNING " +
+        "WHERE taskID = ?",
+        [taskID]
+    );
+    if (rows.length === 0) return workedHours;
+    for (const row of rows) workedHours.push({
+        month: row.month,
+        workedHours: row.workedHours
+    });
+    return workedHours;
+}
+
+
+// 3 ----- Check if a Planning is valid
 async function isValid(taskID, month, plannedHours) {
     if (!taskID || !month || (!plannedHours && plannedHours !== 0))
         return "All fields are required!!!";
@@ -49,7 +73,7 @@ async function isValid(taskID, month, plannedHours) {
 }
 
 
-// 3 ----- Check if a Planning already exists
+// 4 ----- Check if a Planning already exists
 async function existsPlanning(taskID, month) {
     if (!taskID || isNaN(taskID) || !month || isNaN(month)) return true;
     const [rows] = await DBPool.query(
@@ -63,7 +87,7 @@ async function existsPlanning(taskID, month) {
 }
 
 
-// 4 ----- Add a new Planning
+// 5 ----- Add a new Planning
 async function addNew(taskID, month, plannedHours) {
     const [newRow] = await DBPool.query(
         "INSERT INTO PLANNING " +
@@ -74,7 +98,7 @@ async function addNew(taskID, month, plannedHours) {
 }
 
 
-// 5 ----- Update an already existing Planning
+// 6 ----- Update an already existing Planning
 async function updatePlanning(taskID, month, plannedHours) {
     if (!taskID || isNaN(taskID) ||
         !month || isNaN(month) ||
@@ -92,6 +116,7 @@ async function updatePlanning(taskID, month, plannedHours) {
 // export the DAO functions
 module.exports = {
     getPlannedHours,
+    getWorkedHours,
     isValid,
     existsPlanning,
     addNew,

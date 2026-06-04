@@ -79,9 +79,29 @@
             <button type="submit">Set Project to ASSIGN status</button>
         </form>
     </div>
+
+    <!-- SECTION 2 ----- Project Monitoring -->
+    <div id="section-homeManager-projectMonitoring" class="page-wrapper">
+        <h1>Project Monitoring</h1>
+        <p class="nav-bar">
+            Go back to <a href="#" id="button-homeManager-projectMonitoring-back">Home Page</a> |
+            <a href="#" id="button-projectMonitoring-logout">LOGOUT</a>
+        </p>
+
+        <!-- Project list -->
+        <h2>Your assigned Projects</h2>
+        <p id="homeManager-projectMonitoring-error" class="msg-error" style="display:none;"></p>
+        <p id="homeManager-projectMonitoring-projects-empty" style="display:none;">You currently have no Project with status "ASSIGNED" which you are Manager of!</p>
+        <div id="homeManager-projectMonitoring-projects-container"></div>
+
+        <!-- Project Stats -->
+        <p id="homeManager-projectMonitoring-success" class="msg-success" style="display:none;"></p>
+        <div id="homeManager-projectMonitoring-stats-container" style="display:none;"></div>
+    </div>
     
     <!-- load scripts -->
     <script src="/TIW19-javascript/js/utils.js"></script>
     <script src="/TIW19-javascript/js/homeManager.js"></script>
+    <script src="/TIW19-javascript/js/projectMonitoring.js"></script>
 </body>
 </html>

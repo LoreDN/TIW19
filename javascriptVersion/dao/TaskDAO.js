@@ -56,7 +56,7 @@ async function getAll(workPackageID) {
     for (const row of rows) {
         tasks.push( new Task(
             row.ID, row.orderNumber, row.title, row.description, row.startingMonth, row.endingMonth, 
-            await PlanningDAO.getPlannedHours(row.ID)
+            await PlanningDAO.getPlannedHours(row.ID), await PlanningDAO.getWorkedHours(row.ID)
         ));
     }
     return tasks;
@@ -76,7 +76,7 @@ async function getFromID(taskID) {
     const row = rows[0];
     return new Task(
         row.ID, row.orderNumber, row.title, row.description, row.startingMonth, row.endingMonth, 
-        await PlanningDAO.getPlannedHours(row.ID)
+        await PlanningDAO.getPlannedHours(row.ID), await PlanningDAO.getWorkedHours(row.ID)
     );
 }
 
