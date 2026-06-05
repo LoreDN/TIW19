@@ -18,7 +18,7 @@ async function showProjectMonitoring() {
         return;
     }
     
-    // load the projects
+    // load the Projects
     showSection('section-homeManager-projectMonitoring');
     history.pushState(null, '', BASE_URL + '/homeManager/projectMonitoring');
     await loadAssignedProjects();
@@ -59,7 +59,6 @@ async function loadAssignedProjects() {
             const projectItem = document.createElement('li');
             projectItem.id = `homeManager-projectMonitoring-projects-${project.id}`;
             const projectLink = document.createElement('a');
-            projectLink.href = '#';
             projectLink.innerHTML = `
                 <strong>${escapeHtml(project.title)}</strong>
                 &nbsp;|&nbsp; Duration: ${project.duration} month(s)
@@ -100,10 +99,10 @@ function showProjectStats(project) {
     table.appendChild(tableBody);
     
     // populate table
-    createTableHeader(tableHeader, project);
+    createProjectTableHeader(tableHeader, project);
     for (const workPackage of project.workPackages) {
         for (const task of workPackage.tasks) {
-            createTableBody(tableBody, project, workPackage, task);
+            createProjectTableBody(tableBody, project, workPackage, task);
         }
     }
 
@@ -129,7 +128,7 @@ function showProjectStats(project) {
 }
 
 // create table header
-function createTableHeader(tableHeader, project) {
+function createProjectTableHeader(tableHeader, project) {
     const tableHeaderRow = document.createElement('tr');
     tableHeader.appendChild(tableHeaderRow);
 
@@ -155,7 +154,7 @@ function createTableHeader(tableHeader, project) {
 }
 
 // create table body
-function createTableBody(tableBody, project, workPackage, task) {    
+function createProjectTableBody(tableBody, project, workPackage, task) {    
     const tableBodyRow = document.createElement('tr');
     tableBody.appendChild(tableBodyRow);
     

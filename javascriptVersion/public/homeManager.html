@@ -98,10 +98,29 @@
         <p id="homeManager-projectMonitoring-success" class="msg-success" style="display:none;"></p>
         <div id="homeManager-projectMonitoring-stats-container" style="display:none;"></div>
     </div>
+
+    <!-- SECTION 3 ----- Collaborators Monitoring -->
+    <div id="section-homeManager-collaboratorsMonitoring" class="page-wrapper">
+        <h1>Collaborators Monitoring</h1>
+        <p class="nav-bar">
+            Go back to <a href="#" id="button-homeManager-collaboratorsMonitoring-back">Home Page</a> |
+            <a href="#" id="button-collaboratorsMonitoring-logout">LOGOUT</a>
+        </p>
+
+        <!-- Collaborators list -->
+        <h2>Collaborators to at least one of your assigned Projects</h2>
+        <p id="homeManager-collaboratorsMonitoring-error" class="msg-error" style="display:none;"></p>
+        <p id="homeManager-collaboratorsMonitoring-collaborators-empty" style="display:none;">You currently have no Collaborator assigned to at least one Project which you are Manager of!</p>
+        <div id="homeManager-collaboratorsMonitoring-collaborators-container"></div>
+
+        <!-- Collaborator Stats -->
+        <div id="homeManager-collaboratorsMonitoring-stats-container" style="display:none;"></div>
+    </div>
     
     <!-- load scripts -->
     <script src="/TIW19-javascript/js/utils.js"></script>
     <script src="/TIW19-javascript/js/homeManager.js"></script>
     <script src="/TIW19-javascript/js/projectMonitoring.js"></script>
+    <script src="/TIW19-javascript/js/collaboratorsMonitoring.js"></script>
 </body>
 </html>
