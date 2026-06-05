@@ -109,5 +109,30 @@ router.post('/assignProject', async (request, response) => {
 });
 
 
+// POST /api/manager/concludeProject
+router.post('/concludeProject', async (request, response) => {
+    const user = request.session.user;
+    const manager = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
+    if (!manager || !manager.isManager()) return response.status(401).json({ error: "[Login Error] : Not authenticated as MANAGER!!!" });
+    const projectID = request.body.projectID;
+    const projectTitle = request.body.projectTitle;
+
+    // DB-side validation
+    try {
+        const conclusionValidity = await ProjectDAO.canBeConcluded(projectID, manager.username);
+        if (conclusionValidity === true) {
+            await ProjectDAO.updateStatus(projectID, 'CONCLUDED');
+            response.json({
+                ok: true,
+                success: `[Conclusion Success] : Project ${projectTitle} has been concluded successfully!!!`
+            });
+        } else response.status(400).json({ error: conclusionValidity });
+    } catch (exception) {
+        console.error(exception);
+        response.status(500).json({ error: "[DB Error] : " + exception.message });
+    }
+});
+
+
 // export the router
 module.exports = router;

@@ -174,7 +174,40 @@ async function canBeAssigned(projectID, manager) {
 }
 
 
-// 8 ----- Update a Project status
+// 8 ----- Check if a Project can be concluded
+async function canBeConcluded(projectID, manager) {
+    if (!projectID || isNaN(projectID) || !manager)
+        return "All fields are required!!!";
+    
+    // sanity check
+    const project = await getFromID(projectID);
+    // project
+    if (!project)
+        return "[Conclusion Error] : Project not found!!!";
+    else if (project.manager !== manager)
+        return "[Conclusion Error] : Project not assigned to the logged MANAGER!!!";
+    else if (project.status !== 'ASSIGNED')
+        return "[Conclusion Error] : Project status must be ASSIGNED to be concluded!!!";
+    // tasks
+    else {
+        for (const task of project.workPackages.flatMap(workPackage => workPackage.tasks)) {
+            for (let month = task.startingMonth; month <= task.endingMonth; month++) {
+                const monthPlanned = task.plannedHours.find(p => p.month === month);
+                const monthWorked = task.workedHours.find(w => w.month === month);
+                if (!monthPlanned || isNaN(monthPlanned.plannedHours) ||
+                    !monthWorked || isNaN(monthWorked.workedHours) ||
+                    Number(monthWorked.workedHours) < Number(monthPlanned.plannedHours)
+                ) return `[Conclusion Error] : Month M${month} is not concluded for the Task ${task.orderNumber}!!!`;
+            }
+        };
+    }
+
+    // all checks passed
+    return true;
+}
+
+
+// 9 ----- Update a Project status
 async function updateStatus(projectID, newStatus) {
     if (!projectID || isNaN(projectID) || !newStatus) return;
     await DBPool.query(
@@ -195,5 +228,6 @@ module.exports = {
     getWithStatus,
     getFromID,
     canBeAssigned,
+    canBeConcluded,
     updateStatus
 };
