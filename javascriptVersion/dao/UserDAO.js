@@ -35,8 +35,24 @@ async function getFromUsername(username) {
 }
 
 
+// 3 ----- Get an User by its ID
+async function getFromID(userID) {
+    if (!userID || isNaN(userID)) return null;
+    const [rows] = await DBPool.query(
+        "SELECT * " +
+        "FROM USERS " +
+        "WHERE ID = ?",
+        [userID]
+    );
+    if (rows.length === 0) return null;
+    const r = rows[0];
+    return new User(r.ID, r.name, r.surname, r.username, r.photo, r.role);
+}
+
+
 // export the DAO functions
 module.exports = {
     checkCredentials, 
-    getFromUsername
+    getFromUsername,
+    getFromID
 };

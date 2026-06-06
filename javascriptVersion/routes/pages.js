@@ -57,6 +57,14 @@ router.get('/homeManager/projectMonitoring', (request, response) => {
     response.sendFile(path.join(__dirname, '../public', 'homeManager.html'));
 });
 
+// GET /homeManager/collaboratorsMonitoring
+router.get('/homeManager/collaboratorsMonitoring', (request, response) => {
+    const user = getSessionUser(request);
+    if (!user || !user.isManager()) return logoutRedirect(request, response);
+    response.sendFile(path.join(__dirname, '../public', 'homeManager.html'));
+});
+
+
 // GET /homeCollaborator
 router.get('/homeCollaborator', (request, response) => {
     const user = getSessionUser(request);

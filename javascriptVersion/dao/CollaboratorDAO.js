@@ -3,7 +3,10 @@
 // DAO definition
 const DBPool = require('./DBPool');
 const UserDAO = require('./UserDAO');
+const ProjectDAO = require('./ProjectDAO');
 const TaskDAO = require('./TaskDAO');
+
+const Collaborator = require('../model/Collaborator');
 
 
 // 1 ----- Check if a Collaborator-Planning is valid
@@ -50,8 +53,46 @@ async function addNew(taskID, month, collaboratorID) {
 }
 
 
+// 3 ----- Get all the Collaborators for a Manager
+async function getCollaborators(manager) {
+    const collaborators = [];
+
+    // get Projects
+    const projects = await ProjectDAO.getWithStatus(manager, 'MANAGER', 'ASSIGNED');
+    if (!projects || projects.length === 0) return collaborators;
+
+    // get Collaborators
+    for (const project of projects) {
+        for (const workPackage of project.workPackages) {
+            for (const task of workPackage.tasks) {
+                const [rows] = await DBPool.query(
+                    "SELECT U.ID AS ID, C.month AS month, C.workedHours AS workedHours " +
+                    "FROM USERS AS U " + 
+                    "JOIN COLLABORATORS AS C ON U.ID = C.userID " + 
+                    "WHERE C.taskID = ?",
+                    [task.id]
+                );
+                for (const row of rows) {
+                    if (!collaborators.find(c => c.id === row.ID)) {
+                        collaborators.push( new Collaborator(
+                            await UserDAO.getFromID(row.ID)
+                        ));
+                    }
+                    collaborators.find(c => c.id === row.ID).update(
+                        project.title, project.duration, workPackage.orderNumber, task.orderNumber,
+                        row.month, row.workedHours
+                    )
+                }
+            }
+        }
+    }
+    return collaborators;
+}
+
+
 // export the DAO functions
 module.exports = {
     isValid,
-    addNew
+    addNew,
+    getCollaborators
 };

@@ -134,5 +134,25 @@ router.post('/concludeProject', async (request, response) => {
 });
 
 
+// GET /api/manager/loadCollaborators
+router.get('/loadCollaborators', async (request, response) => {
+    const user = request.session.user;
+    const manager = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
+    if (!manager || !manager.isManager()) return response.status(401).json({ error: "[Login Error] : Not authenticated as MANAGER!!!" });
+
+    // query the DB
+    try {
+        const collaborators = await CollaboratorDAO.getCollaborators(manager.username);
+        response.json({
+            ok: true,
+            collaborators: collaborators
+        })
+    } catch (exception) {
+        console.error(exception);
+        response.status(500).json({ error: "[DB Error] : " + exception.message });
+    }
+});
+
+
 // export the router
 module.exports = router;
