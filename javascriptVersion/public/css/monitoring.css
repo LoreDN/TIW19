@@ -23,6 +23,16 @@ th, td {
     text-align: center;
 }
 
+td[contenteditable="true"] {
+    cursor: text;
+    background-color: #fffbe6;
+}
+
+td[contenteditable="true"]:focus {
+    outline: 2px solid #2c5f9e;
+    background-color: #fff;
+}
+
 
 /* ========== TABLE HEAD ========== */
 thead tr:first-child th {

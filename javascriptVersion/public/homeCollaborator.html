@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page - Collaborator role</title>
+    <link rel="stylesheet" href="/TIW19-javascript/css/global.css"/>
+    <link rel="stylesheet" href="/TIW19-javascript/css/home.css"/>
+    <link rel="stylesheet" href="/TIW19-javascript/css/monitoring.css"/>
+</head>
+<body>
+    <div class="page-wrapper">
+        <h1>Home Page - Collaborator role</h1>
+        <div class="welcome-section">
+            <div class="welcome-bar">
+                <p id="homeCollaborator-welcome"></p>
+                <img id="homeCollaborator-profile-photo" src="" alt="Profile photo"/>
+            </div>
+            <p class="nav-bar">
+                <a href="#" id="button-homeCollaborator-logout">LOGOUT</a>
+            </p>
+        </div>
+
+        <!-- Project list -->
+        <h2>Your assigned Projects</h2>
+        <p id="homeCollaborator-error" class="msg-error" style="display:none;"></p>
+        <p id="homeCollaborator-success" class="msg-success" style="display:none;"></p>
+        <p id="homeCollaborator-projects-empty" style="display:none;">No projects currently assigned to you.</p>
+        <div id="homeCollaborator-projects-container"></div>
+
+        <!-- Project Stats -->
+         <div id="homeCollaborator-stats-container"></div>
+    </div>
+        
+    <!-- load scripts -->
+    <script src="/TIW19-javascript/js/utils.js"></script>
+    <script src="/TIW19-javascript/js/homeCollaborator.js"></script>
+</body>
+</html>
