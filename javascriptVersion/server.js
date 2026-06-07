@@ -9,23 +9,17 @@ const app = express();
 const PORT = 3000;
 const BASE_URL = '/TIW19-javascript';
 
-// define routes path
+// define routes paths
 const pageRoutes = require('./routes/pages');
 const authRoutes = require('./routes/authentication');
 const adminRoutes = require('./routes/admin');
 const managerRoutes = require('./routes/manager');
-/* 
 const collaboratorRoutes = require('./routes/collaborator');
-*/
 
 
 // set parsing middleware
 app.use(express.json());
-app.use(express.urlencoded(
-    {
-        "extended": false
-    }
-));
+app.use(express.urlencoded({ "extended": false }));
 
 // set the session
 app.use(session({
@@ -47,12 +41,10 @@ app.use(BASE_URL, express.static(path.join(__dirname, 'public')));
 app.use(BASE_URL + '/api/authentication', authRoutes);
 app.use(BASE_URL + '/api/admin', adminRoutes);
 app.use(BASE_URL + '/api/manager', managerRoutes);
-/*
 app.use(BASE_URL + '/api/collaborator', collaboratorRoutes);
-*/
 
 
 // start the server
 app.listen(PORT, () => {
-    console.log(`Server listening at http://localhost:${PORT}` + BASE_URL);
+    console.log(`Server listening at http://localhost:${PORT}${BASE_URL}`);
 });

@@ -113,6 +113,21 @@ async function updatePlanning(taskID, month, plannedHours) {
 }
 
 
+// 7 ----- Update worked hours for a Planning
+async function updateWorkedHours(taskID, month, workedHours) {
+    if (!taskID || isNaN(taskID) ||
+        !month || isNaN(month)
+    ) return;
+    const oldWorkedHours = (await getWorkedHours(taskID)).find(w => w.month === month).workedHours;
+    const [rows] = await DBPool.query(
+        "UPDATE PLANNING " +
+        "SET workedHours = ? " +
+        "WHERE taskID = ? AND month = ?",
+        [oldWorkedHours + workedHours, taskID, month]
+    );
+}
+
+
 // export the DAO functions
 module.exports = {
     getPlannedHours,
@@ -120,5 +135,6 @@ module.exports = {
     isValid,
     existsPlanning,
     addNew,
-    updatePlanning
+    updatePlanning,
+    updateWorkedHours
 };

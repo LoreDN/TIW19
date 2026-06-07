@@ -5,8 +5,10 @@ const DBPool = require('./DBPool');
 const UserDAO = require('./UserDAO');
 const ProjectDAO = require('./ProjectDAO');
 const TaskDAO = require('./TaskDAO');
+const PlanningDAO = require('./PlanningDAO');
 
 const Collaborator = require('../model/Collaborator');
+const Assignment = require('../model/Assignment');
 
 
 // 1 ----- Check if a Collaborator-Planning is valid
@@ -90,9 +92,119 @@ async function getCollaborators(manager) {
 }
 
 
+// 4 ----- Get all the Tasks' IDs assigned to a Collaborator
+async function getTaskIDs(collaboratorID) {
+    const tasks = [];
+    if (!collaboratorID || isNaN(collaboratorID)) return tasks; 
+    const [rows] = await DBPool.query(
+        "SELECT taskID " + 
+        "FROM COLLABORATORS " +
+        "WHERE userID = ?",
+        [collaboratorID]
+    );
+    for (const row of rows) tasks.push(row.taskID);
+    return tasks;
+}
+
+
+// 5 ----- Get all the assignments of a Collaborator
+async function getAssignments(collaboratorID) {
+    const assignments = [];
+    if (!collaboratorID || isNaN(collaboratorID)) return assignments;
+
+    // get Projects
+    const tasks = await getTaskIDs(collaboratorID);
+    for (const taskID of tasks) {
+        const project = await ProjectDAO.getFromTask(taskID);
+        if (project.status !== 'ASSIGNED' || assignments.find(p => p.id === project.id)) continue;
+        const newAssignment = new Assignment(project.id, project.title, project.duration, project.admin);
+
+        // get Work-Packages
+        for (const workPackage of project.workPackages) {
+            newAssignment.addWorkPackage(workPackage.orderNumber);
+
+            // get Tasks
+            for (const task of workPackage.tasks) {
+                newAssignment.addTask(workPackage.orderNumber, task.id, task.orderNumber);
+                
+                // filter months
+                for (let month = task.startingMonth; month <= task.endingMonth; month++) {
+                    const workedHours = await getWorkedHours(collaboratorID, task.id, month);
+                    if (workedHours !== null) {
+                        newAssignment.addMonth(
+                            workPackage.orderNumber, task.id,
+                            month, workedHours
+                        );
+                    }
+                }
+            }
+        }
+        assignments.push(newAssignment);
+    }
+    return assignments;
+}
+
+
+// 6 ----- Get the worked hours for Task on a given month by a Collaborator
+async function getWorkedHours(collaboratorID, taskID, month) {
+    if (!collaboratorID || isNaN(collaboratorID) ||
+        !taskID || isNaN(taskID) ||
+        !month || isNaN(month)
+    ) return null;
+    const [rows] = await DBPool.query(
+        "SELECT workedHours " +
+        "FROM COLLABORATORS " +
+        "WHERE userID = ? AND taskID = ? AND month = ?",
+        [collaboratorID, taskID, month]
+    );
+    if (rows.length === 0) return null;
+    return rows[0].workedHours;
+}
+
+
+// 7 ----- Check if hours can be logged for a Task on a given month by a Collaborator
+function canBeLogged(collaboratorID, taskID, month, hours) {
+    // sanity check
+    if (!collaboratorID || !taskID || !month || hours === undefined || hours === null)
+        return "All fields are required!!!";
+    else if (isNaN(collaboratorID) || isNaN(taskID) || isNaN(month) || isNaN(hours))
+        return "All filed must be numbers!!!";
+    // hours
+    else if (hours < 0)
+        return "[Hours Error] : Worked hours must be at least than 0!!!";
+
+    // all checks passed
+    return true;
+}
+
+
+// 8 ----- Log workedHours for a Task on a given month by a Collaborator
+async function updateWorkedHours(collaboratorID, taskID, month, hours) {
+    if (!taskID || isNaN(taskID) ||
+        !month || isNaN(month) ||
+        hours === undefined || hours === null || isNaN(hours)
+    ) return;
+
+    // update the DB
+    const oldWorkedHours = await getWorkedHours(collaboratorID, taskID, month);
+    const [rows] = await DBPool.query(
+        "UPDATE COLLABORATORS " +
+        "SET workedHours = ? " +
+        "WHERE userID = ? AND taskID = ? AND month = ?",
+        [hours, collaboratorID, taskID, month]
+    );
+    await PlanningDAO.updateWorkedHours(taskID, month, hours - oldWorkedHours);
+}
+
+
 // export the DAO functions
 module.exports = {
     isValid,
     addNew,
-    getCollaborators
+    getCollaborators,
+    getTaskIDs,
+    getAssignments,
+    getWorkedHours,
+    canBeLogged,
+    updateWorkedHours
 };

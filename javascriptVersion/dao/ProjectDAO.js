@@ -140,7 +140,31 @@ async function getFromID(projectID) {
 }
 
 
-// 7 ----- Check if a Project can be assigned
+// 7 ----- Get from a single Task ID
+async function getFromTask(taskID) {
+    if (!taskID || isNaN(taskID)) return null;
+    const [rows] = await DBPool.query(
+        "SELECT * " + 
+        "FROM PROJECTS AS P " +
+        "WHERE P.ID = ( SELECT WP.projectID " +
+            "FROM WORK_PACKAGES AS WP " +
+            "WHERE WP.ID = ( SELECT T.workPackageID " +
+                "FROM TASKS AS T " + 
+                "WHERE T.ID = ?" +
+            ")" +
+        ")",
+        [taskID]
+    );
+    if (rows.length === 0) return null;
+    const row = rows[0];
+    return new Project(
+        row.ID, row.title, row.monthsNumber, row.status, row.admin, row.manager,
+        await WorkPackageDAO.getAll(row.ID)
+    );
+}
+
+
+// 8 ----- Check if a Project can be assigned
 async function canBeAssigned(projectID, manager) {
     if (!projectID || isNaN(projectID) || !manager)
         return "All fields are required!!!";
@@ -174,7 +198,7 @@ async function canBeAssigned(projectID, manager) {
 }
 
 
-// 8 ----- Check if a Project can be concluded
+// 9 ----- Check if a Project can be concluded
 async function canBeConcluded(projectID, manager) {
     if (!projectID || isNaN(projectID) || !manager)
         return "All fields are required!!!";
@@ -207,7 +231,7 @@ async function canBeConcluded(projectID, manager) {
 }
 
 
-// 9 ----- Update a Project status
+// 10 ----- Update a Project status
 async function updateStatus(projectID, newStatus) {
     if (!projectID || isNaN(projectID) || !newStatus) return;
     await DBPool.query(
@@ -227,6 +251,7 @@ module.exports = {
     getAll,
     getWithStatus,
     getFromID,
+    getFromTask,
     canBeAssigned,
     canBeConcluded,
     updateStatus

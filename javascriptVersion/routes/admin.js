@@ -11,13 +11,14 @@ const ProjectDAO = require('../dao/ProjectDAO');
 // POST /api/admin/createProject
 router.post('/createProject', async (request, response) => {
     const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated!!!" });
     const admin = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
     if (!admin || !admin.isAdmin()) return response.status(401).json({ error: "[Login Error] : Not authenticated as ADMIN!!!" });
     const project = request.body;
 
     // DB-side validation
     try {
-        const projectValidity = await projectDAO.isValid(admin.username, project);
+        const projectValidity = await ProjectDAO.isValid(admin.username, project);
         if (projectValidity === true) {
             await ProjectDAO.addNew(admin.username, project);
             response.json({
@@ -35,6 +36,7 @@ router.post('/createProject', async (request, response) => {
 // GET /api/admin/loadProjects
 router.get('/loadProjects', async (request, response) => {
     const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated!!!" });
     const admin = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
     if (!admin || !admin.isAdmin()) return response.status(401).json({ error: "[Login Error] : Not authenticated as ADMIN!!!" });
 

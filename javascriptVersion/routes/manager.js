@@ -14,6 +14,7 @@ const CollaboratorDAO = require('../dao/CollaboratorDAO');
 // GET /api/manager/loadProjects
 router.get('/loadProjects', async (request, response) => {
     const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated!!!" });
     const manager = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
     if (!manager || !manager.isManager()) return response.status(401).json({ error: "[Login Error] : Not authenticated as MANAGER!!!" });
     const projectStatus = request.query.status;
@@ -35,6 +36,7 @@ router.get('/loadProjects', async (request, response) => {
 // POST /api/manager/assignHours
 router.post('/assignHours', async (request, response) => {
     const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated!!!" });
     const manager = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
     if (!manager || !manager.isManager()) return response.status(401).json({ error: "[Login Error] : Not authenticated as MANAGER!!!" });
     const taskID = request.body.assignment.taskID;
@@ -62,6 +64,7 @@ router.post('/assignHours', async (request, response) => {
 // POST /api/manager/assignCollaborator
 router.post('/assignCollaborator', async (request, response) => {
     const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated!!!" });
     const manager = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
     if (!manager || !manager.isManager()) return response.status(401).json({ error: "[Login Error] : Not authenticated as MANAGER!!!" });
     const taskID = request.body.assignment.taskID;
@@ -88,6 +91,7 @@ router.post('/assignCollaborator', async (request, response) => {
 // POST /api/manager/assignProject
 router.post('/assignProject', async (request, response) => {
     const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated!!!" });
     const manager = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
     if (!manager || !manager.isManager()) return response.status(401).json({ error: "[Login Error] : Not authenticated as MANAGER!!!" });
     const projectID = request.body.projectID;
@@ -112,6 +116,7 @@ router.post('/assignProject', async (request, response) => {
 // POST /api/manager/concludeProject
 router.post('/concludeProject', async (request, response) => {
     const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated!!!" });
     const manager = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
     if (!manager || !manager.isManager()) return response.status(401).json({ error: "[Login Error] : Not authenticated as MANAGER!!!" });
     const projectID = request.body.projectID;
@@ -137,6 +142,7 @@ router.post('/concludeProject', async (request, response) => {
 // GET /api/manager/loadCollaborators
 router.get('/loadCollaborators', async (request, response) => {
     const user = request.session.user;
+    if (!user) return response.status(401).json({ error: "[Login Error] : Not authenticated!!!" });
     const manager = new User(user.id, user.name, user.surname, user.username, user.photo, user.role);
     if (!manager || !manager.isManager()) return response.status(401).json({ error: "[Login Error] : Not authenticated as MANAGER!!!" });
 
